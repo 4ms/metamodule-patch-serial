@@ -1,0 +1,3 @@
+[submodule "ryml/rapidyaml"]
+	path = ryml/rapidyaml
+	url = https://github.com/danngreen/rapidyaml.git
