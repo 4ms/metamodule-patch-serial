@@ -1,8 +1,7 @@
 
 #include "ryml_std.hpp"
 //
-#include "CoreModules/module_type_slug.hh"
-#include "cpputil/util/countzip.hh"
+#include "patch/module_type_slug.hh"
 #include "patch/patch.hh"
 #include "ryml.hpp"
 #include "ryml_serial_chars.hh"
@@ -65,21 +64,23 @@ void write(ryml::NodeRef *n, StaticParam const &k) {
 
 void write(ryml::NodeRef *n, std::vector<BrandModuleSlug> const &slugs) {
 	*n |= ryml::MAP;
-	for (auto [i, x] : enumerate(slugs)) {
+	for (unsigned i = 0; auto const &x : slugs) {
 		auto idx_s = std::to_string(i);
 		ryml::csubstr idx(idx_s.c_str(), idx_s.length());
 		ryml::csubstr slug(x.c_str(), x.length());
 		n->append_child() << ryml::key(idx) << slug;
+		i++;
 	}
 }
 
 void write(ryml::NodeRef *n, std::vector<ModuleTypeSlug> const &slugs) {
 	*n |= ryml::MAP;
-	for (auto [i, x] : enumerate(slugs)) {
+	for (unsigned i = 0; auto const &x : slugs) {
 		auto idx_s = std::to_string(i);
 		ryml::csubstr idx(idx_s.c_str(), idx_s.length());
 		ryml::csubstr slug(x.c_str(), x.length());
 		n->append_child() << ryml::key(idx) << slug;
+		i++;
 	}
 }
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "CoreModules/hub/panel_medium_defs.hh"
 #include "midi_def.hh"
 #include "util/math.hh"
 #include "util/static_string.hh"
@@ -49,7 +48,7 @@ struct MappedKnob {
 	}
 
 	bool is_panel_knob() const {
-		return panel_knob_id < PanelDef::NumKnobs;
+		return panel_knob_id < LastPossibleKnob;
 	}
 
 	bool is_midi_cc() const {

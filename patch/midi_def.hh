@@ -3,6 +3,7 @@
 #include <cstdint>
 
 enum {
+	LastPossibleKnob = 0xFF,
 
 	MidiMonoNoteJack = 0x100,
 	MidiNote2Jack,

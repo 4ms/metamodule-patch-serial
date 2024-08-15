@@ -21,5 +21,5 @@ target_sources(metamodule-patch-serial PRIVATE
 
 add_subdirectory(ryml/rapidyaml)
 
-target_link_libraries(metamodule-patch-serial PUBLIC ryml CoreModules cpputil)
+target_link_libraries(metamodule-patch-serial PUBLIC ryml cpputil)
 
