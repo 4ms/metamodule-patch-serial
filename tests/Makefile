@@ -24,16 +24,12 @@ BUILDDIR = $(TEST_DIR)/build/obj
 
 CXXFLAGS = 	-Wall \
 		 	-std=gnu++2a \
-			-I$(DOCTEST_DIR) \
-			-I \
-			-Iryml \
-			-I../../firmware/src/medium \
+			-I. \
 			-I.. \
-			-I../../firmware/metamodule-plugin-sdk/metamodule-core-interface \
 			-I../cpputil \
+			-Iryml \
 			-I$(RYMLDIR)/src \
 			-I$(RYMLDIR)/ext/c4core/src \
-			-I$(TEST_DIR) \
 			-DTESTPROJECT \
 
 ### Boilerplate below here:
