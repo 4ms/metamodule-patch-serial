@@ -10,6 +10,7 @@ target_include_directories(metamodule-patch-serial PUBLIC
 	${CMAKE_CURRENT_LIST_DIR}/ryml
 	${CMAKE_CURRENT_LIST_DIR}/ryml/rapidyaml/src
 	${CMAKE_CURRENT_LIST_DIR}/ryml/rapidyaml/ext/c4core/src	
+	${CMAKE_CURRENT_LIST_DIR}/.. #so libs that link to this can do #include "patch-serial/base64.hh"
 )
 
 target_sources(metamodule-patch-serial PRIVATE
