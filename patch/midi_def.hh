@@ -1,8 +1,10 @@
 #pragma once
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 
-enum {
+enum MidiMappings {
 	LastPossibleKnob = 0xFF,
 
 	MidiMonoNoteJack = 0x100,
@@ -111,5 +113,19 @@ constexpr float note_to_volts(uint8_t note) {
 }
 static_assert(note_to_volts(60) == 3);
 static_assert(note_to_volts(72) == 4);
+
+// Returns 1-8 for the poly chan of a MidiMapping
+constexpr std::optional<uint8_t> polychan(unsigned mapping) {
+	if (mapping > LastPossibleKnob && mapping < MidiCC0) {
+		return std::min<uint8_t>(mapping & 0x0F, 7) + 1;
+	}
+	return std::nullopt;
+}
+
+static_assert(polychan(MidiMonoNoteJack).value() == 1);
+static_assert(polychan(MidiNote2Jack).value() == 2);
+static_assert(polychan(MidiNote8Jack).value() == 8);
+static_assert(polychan(MidiRetrig2Jack).value() == 2);
+static_assert(polychan(MidiRetrig8Jack).value() == 8);
 
 }; // namespace MetaModule::Midi
