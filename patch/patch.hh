@@ -79,46 +79,6 @@ struct MappedInputJack {
 	uint32_t panel_jack_id{};
 	std::vector<Jack> ins;
 	AliasNameString alias_name{};
-
-	std::optional<uint32_t> midi_note_pitch() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiMonoNoteJack, MidiNote8Jack);
-	}
-
-	std::optional<uint32_t> midi_note_gate() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiMonoGateJack, MidiGate8Jack);
-	}
-
-	std::optional<uint32_t> midi_note_vel() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiMonoVelJack, MidiVel8Jack);
-	}
-
-	std::optional<uint32_t> midi_note_aft() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiMonoAftertouchJack, MidiAftertouch8Jack);
-	}
-
-	std::optional<uint32_t> midi_note_retrig() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiMonoRetrigJack, MidiRetrig8Jack);
-	}
-
-	std::optional<uint32_t> midi_gate() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiGateNote0, MidiGateNote127);
-	}
-
-	std::optional<uint32_t> midi_cc() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiCC0, MidiPitchWheelJack);
-	}
-
-	std::optional<uint32_t> midi_clk() const {
-		return panel_jack_id == MidiClockJack ? std::optional<uint32_t>{0} : std::nullopt;
-	}
-
-	std::optional<uint32_t> midi_divclk() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiClockDiv1Jack, MidiClockDiv96Jack);
-	}
-
-	std::optional<uint32_t> midi_transport() const {
-		return MathTools::between<uint32_t>(panel_jack_id, MidiStartJack, MidiContinueJack);
-	}
 };
 
 struct MappedOutputJack {

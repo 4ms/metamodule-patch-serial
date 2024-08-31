@@ -1,4 +1,5 @@
 #pragma once
+#include "util/math.hh"
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -127,5 +128,45 @@ static_assert(polychan(MidiNote2Jack).value() == 2);
 static_assert(polychan(MidiNote8Jack).value() == 8);
 static_assert(polychan(MidiRetrig2Jack).value() == 2);
 static_assert(polychan(MidiRetrig8Jack).value() == 8);
+
+constexpr std::optional<uint32_t> midi_note_pitch(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoNoteJack, MidiNote8Jack);
+}
+
+constexpr std::optional<uint32_t> midi_note_gate(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoGateJack, MidiGate8Jack);
+}
+
+constexpr std::optional<uint32_t> midi_note_vel(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoVelJack, MidiVel8Jack);
+}
+
+constexpr std::optional<uint32_t> midi_note_aft(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoAftertouchJack, MidiAftertouch8Jack);
+}
+
+constexpr std::optional<uint32_t> midi_note_retrig(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoRetrigJack, MidiRetrig8Jack);
+}
+
+constexpr std::optional<uint32_t> midi_gate(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiGateNote0, MidiGateNote127);
+}
+
+constexpr std::optional<uint32_t> midi_cc(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiCC0, MidiPitchWheelJack);
+}
+
+constexpr std::optional<uint32_t> midi_clk(uint32_t panel_jack_id) {
+	return panel_jack_id == MidiClockJack ? std::optional<uint32_t>{0} : std::nullopt;
+}
+
+constexpr std::optional<uint32_t> midi_divclk(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiClockDiv1Jack, MidiClockDiv96Jack);
+}
+
+constexpr std::optional<uint32_t> midi_transport(uint32_t panel_jack_id) {
+	return MathTools::between<uint32_t>(panel_jack_id, MidiStartJack, MidiContinueJack);
+}
 
 }; // namespace MetaModule::Midi
