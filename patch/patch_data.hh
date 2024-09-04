@@ -90,6 +90,17 @@ struct PatchData {
 		return nullptr;
 	}
 
+	void update_midi_poly_num() {
+		uint32_t max_poly_used = 0;
+
+		for (auto const &map : mapped_ins) {
+			if (auto num = Midi::polychan(map.panel_jack_id)) {
+				max_poly_used = std::max<uint32_t>(max_poly_used, *num);
+			}
+		}
+		midi_poly_num = max_poly_used;
+	}
+
 	// Updates an existing mapped knob, or adds it if it doesn't exist yet
 	bool add_update_mapped_knob(uint32_t set_id, MappedKnob const &map) {
 		if (set_id == MIDIKnobSet)
@@ -202,6 +213,8 @@ struct PatchData {
 		}
 		// Remove any panel mappings that now have no inputs
 		std::erase_if(mapped_ins, [](auto map) { return (map.ins.size() == 0); });
+
+		update_midi_poly_num();
 	}
 
 	void disconnect_outjack(Jack jack) {
@@ -247,21 +260,19 @@ struct PatchData {
 	}
 
 	void add_mapped_injack(uint16_t panel_jack_id, Jack jack) {
-		bool done = false;
 		for (auto &m : mapped_ins) {
 			if (m.panel_jack_id == panel_jack_id) {
 				for (auto &j : m.ins) {
 					if (j == jack)
-						done = true; //exact match already exists, no further action needed
+						return; // exact match already exists, no further action needed
 				}
-				if (!done) {
-					m.ins.push_back(jack);
-					done = true;
-				}
+				m.ins.push_back(jack);
+				update_midi_poly_num(panel_jack_id);
+				return;
 			}
 		}
-		if (!done)
-			mapped_ins.push_back({panel_jack_id, {jack}});
+		mapped_ins.push_back({panel_jack_id, {jack}});
+		update_midi_poly_num(panel_jack_id);
 	}
 
 	void add_mapped_outjack(uint16_t panel_jack_id, Jack jack) {
@@ -456,6 +467,12 @@ private:
 			}
 		}
 		return nullptr;
+	}
+
+	void update_midi_poly_num(uint16_t panel_jack_id) {
+		if (auto poly = Midi::polychan(panel_jack_id)) {
+			midi_poly_num = std::max<uint32_t>(*poly, midi_poly_num);
+		}
 	}
 };
 
