@@ -308,7 +308,12 @@ struct PatchData {
 	}
 
 	void trim_empty_knobsets() {
-		std::erase_if(knob_sets, [](auto &knobset) { return knobset.set.size() == 0; });
+		if (knob_sets.size() == 0) {
+			knob_sets.push_back({{}, "Knob Set 1"});
+			return;
+		}
+		std::erase_if(knob_sets,
+					  [this](auto &knobset) { return knobset.set.size() == 0 && &knobset != &knob_sets[0]; });
 	}
 
 	const char *valid_knob_set_name(unsigned set_i) const {
