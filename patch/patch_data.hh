@@ -126,7 +126,12 @@ struct PatchData {
 
 		} else {
 			// Add a new mapping in an existing knob set
-			knob_sets[set_id].set.push_back(map);
+			auto &ks = knob_sets[set_id].set;
+			ks.insert(std::upper_bound(ks.begin(),
+									   ks.end(),
+									   map.panel_knob_id,
+									   [](uint16_t a, const MappedKnob &b) { return a < b.panel_knob_id; }),
+					  map);
 		}
 
 		return true;
