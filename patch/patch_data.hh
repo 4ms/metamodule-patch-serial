@@ -312,6 +312,14 @@ struct PatchData {
 		return nullptr;
 	}
 
+	void sort_knobsets() {
+		for (auto &ksset : knob_sets) {
+			auto &ks = ksset.set;
+			std::sort(
+				ks.begin(), ks.end(), [](MappedKnob &a, MappedKnob &b) { return a.panel_knob_id < b.panel_knob_id; });
+		}
+	}
+
 	void trim_empty_knobsets() {
 		if (knob_sets.size() == 0) {
 			knob_sets.push_back({{}, "Knob Set 1"});
