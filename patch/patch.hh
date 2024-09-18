@@ -3,6 +3,7 @@
 #include "util/math.hh"
 #include "util/static_string.hh"
 #include <optional>
+#include <string>
 #include <vector>
 
 constexpr int MAX_MODULES_IN_PATCH = 32;
