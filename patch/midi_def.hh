@@ -109,11 +109,12 @@ constexpr float s14_to_semitones(int16_t val) {
 static_assert(s14_to_semitones<2>(-8192) == -0.16666667f);
 static_assert(s14_to_semitones<2>(8192) == 0.16666667f);
 
+// Note 60 = C5 means use the freq. set by the panel controls
 constexpr float note_to_volts(uint8_t note) {
-	return (note - 24) / 12.f;
+	return (note - 60) / 12.f;
 }
-static_assert(note_to_volts(60) == 3);
-static_assert(note_to_volts(72) == 4);
+static_assert(note_to_volts(60) == 0);
+static_assert(note_to_volts(72) == 1);
 
 // Returns 1-8 for the poly chan of a MidiMapping
 constexpr std::optional<uint8_t> polychan(unsigned mapping) {
