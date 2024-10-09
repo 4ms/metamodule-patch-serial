@@ -1,4 +1,5 @@
 #pragma once
+#include "mapping_ids.hh"
 #include "midi_def.hh"
 #include "util/math.hh"
 #include "util/static_string.hh"
@@ -49,11 +50,15 @@ struct MappedKnob {
 	}
 
 	bool is_panel_knob() const {
-		return panel_knob_id < LastPossibleKnob;
+		return panel_knob_id < MaxPanelKnobs;
 	}
 
 	bool is_midi_cc() const {
 		return (panel_knob_id >= MidiCC0 && panel_knob_id <= MidiCC127);
+	}
+
+	bool is_button() const {
+		return panel_knob_id >= FirstButton && panel_knob_id <= LastButton;
 	}
 
 	uint16_t cc_num() const {

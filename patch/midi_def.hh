@@ -6,8 +6,6 @@
 #include <optional>
 
 enum MidiMappings {
-	LastPossibleKnob = 0xFF,
-
 	MidiMonoNoteJack = 0x100,
 	MidiNote2Jack,
 	MidiNote3Jack,
@@ -118,7 +116,7 @@ static_assert(note_to_volts(72) == 1);
 
 // Returns 1-8 for the poly chan of a MidiMapping
 constexpr std::optional<uint8_t> polychan(unsigned mapping) {
-	if (mapping > LastPossibleKnob && mapping < MidiCC0) {
+	if (mapping >= MidiMonoNoteJack && mapping < MidiCC0) {
 		return std::min<uint8_t>(mapping & 0x0F, 7) + 1;
 	}
 	return std::nullopt;
