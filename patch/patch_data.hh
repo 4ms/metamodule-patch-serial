@@ -18,6 +18,7 @@ struct PatchData {
 	std::vector<MappedOutputJack> mapped_outs;
 	std::vector<StaticParam> static_knobs;
 	std::vector<MappedKnobSet> knob_sets;
+	std::vector<MappedLight> mapped_lights;
 	std::vector<ModuleInitState> module_states;
 	MappedKnobSet midi_maps;
 	uint32_t midi_poly_num = 1;

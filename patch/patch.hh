@@ -98,6 +98,12 @@ struct ModuleInitState {
 	std::string state_data;
 };
 
+struct MappedLight {
+	uint32_t panel_light_id{};
+	uint16_t module_id{};
+	uint16_t light_id{};
+};
+
 static_assert(sizeof(Jack) == 4, "Jack should be 4B");
 static_assert(sizeof(StaticParam) == 8, "StaticParam should be 8B");
 static_assert(sizeof(AliasNameString) == 32, "AliasNameString should be 32B");

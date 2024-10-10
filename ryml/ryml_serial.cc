@@ -94,6 +94,13 @@ void write(ryml::NodeRef *n, ModuleInitState const &state) {
 	data_node << ryml::key("data") << state.state_data;
 }
 
+void write(ryml::NodeRef *n, MappedLight const &map) {
+	*n |= ryml::MAP;
+	n->append_child() << ryml::key("panel_light_id") << map.panel_light_id;
+	n->append_child() << ryml::key("module_id") << map.module_id;
+	n->append_child() << ryml::key("light_id") << map.light_id;
+}
+
 bool read(ryml::ConstNodeRef const &n, Jack *jack) {
 	if (n.num_children() < 2)
 		return false;
@@ -275,5 +282,24 @@ bool read(ryml::ConstNodeRef const &n, ModuleInitState *m) {
 	// Modules will decide how to deserialize
 
 	n["data"] >> m->state_data;
+	return true;
+}
+
+bool read(ryml::ConstNodeRef const &n, MappedLight *k) {
+	if (n.num_children() < 3)
+		return false;
+	if (!n.is_map())
+		return false;
+	if (!n.has_child("panel_light_id"))
+		return false;
+	if (!n.has_child("module_id"))
+		return false;
+	if (!n.has_child("light_id"))
+		return false;
+
+	n["panel_light_id"] >> k->panel_light_id;
+	n["module_id"] >> k->module_id;
+	n["light_id"] >> k->light_id;
+
 	return true;
 }

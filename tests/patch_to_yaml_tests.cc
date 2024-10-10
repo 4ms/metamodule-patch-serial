@@ -82,6 +82,9 @@ TEST_CASE("Correct yaml output produced") {
 
 	pd.midi_poly_num = 4;
 
+	pd.mapped_lights.push_back({.panel_light_id = 123, .module_id = 456, .light_id = 789});
+	pd.mapped_lights.push_back({.panel_light_id = 124, .module_id = 457, .light_id = 790});
+
 	pd.module_states.push_back({2, "some string\nCan span lines\n\nNo problem"});
 
 	std::string str;
@@ -196,6 +199,13 @@ R"(PatchData:
     name: ''
     set: []
   midi_poly_num: 4
+  mapped_lights:
+    - panel_light_id: 123
+      module_id: 456
+      light_id: 789
+    - panel_light_id: 124
+      module_id: 457
+      light_id: 790
   vcvModuleStates:
     - module_id: 2
       data: |-
