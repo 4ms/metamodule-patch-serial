@@ -94,6 +94,8 @@ static constexpr size_t NumMidiClockJacks = MidiClockDiv96Jack - MidiClockJack +
 
 namespace MetaModule::Midi
 {
+static constexpr unsigned PitchBendCC = 128;
+
 // Converts MIDI 7-bit to volts
 template<unsigned MaxVolts>
 constexpr float u7_to_volts(uint8_t val) {
