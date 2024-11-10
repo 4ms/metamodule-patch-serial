@@ -63,7 +63,11 @@ struct MappedKnob {
 		return panel_knob_id - MidiCC0;
 	}
 
-	bool operator==(const MappedKnob &other) {
+	bool operator==(const MappedKnob &other) const {
+		return maps_to_same_as(other);
+	}
+
+	bool maps_to_same_as(const MappedKnob &other) const {
 		return (module_id == other.module_id) && (param_id == other.param_id);
 	}
 };
