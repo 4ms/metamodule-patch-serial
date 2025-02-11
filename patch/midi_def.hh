@@ -80,8 +80,8 @@ enum MidiMappings {
 
 namespace TimingEvents
 {
-enum : uint8_t { Clock = 0, DivClock = 1, Start = 2, Stop = 3, Cont = 4 };
-}
+enum : uint8_t { Clock = 0, Start = 1, Stop = 2, Cont = 3, NumTimingEvents };
+} // namespace TimingEvents
 
 enum { MidiModWheelJack = MidiCC1 };
 
