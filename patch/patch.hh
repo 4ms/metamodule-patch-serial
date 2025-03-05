@@ -29,7 +29,10 @@ struct MappedKnob {
 	uint16_t panel_knob_id;
 	uint16_t module_id;
 	uint16_t param_id;
-	uint16_t curve_type; // reserved for future use
+
+	enum CurveType { Normal, Toggle };
+	uint16_t curve_type;
+
 	float min;
 	float max;
 	AliasNameString alias_name;
