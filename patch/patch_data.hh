@@ -134,7 +134,7 @@ struct PatchData {
 	}
 
 	bool add_update_midi_map(MappedKnob const &map) {
-		if (!map.is_midi_cc())
+		if (!map.is_midi())
 			return false;
 
 		if (map.module_id >= module_slugs.size())

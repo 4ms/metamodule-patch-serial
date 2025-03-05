@@ -55,12 +55,24 @@ struct MappedKnob {
 		return (panel_knob_id >= MidiCC0 && panel_knob_id <= MidiCC127);
 	}
 
+	bool is_midi_notegate() const {
+		return (panel_knob_id >= MidiGateNote0 && panel_knob_id <= MidiGateNote127);
+	}
+
+	bool is_midi() const {
+		return is_midi_notegate() || is_midi_cc();
+	}
+
 	bool is_button() const {
 		return panel_knob_id >= FirstButton && panel_knob_id <= LastButton;
 	}
 
 	uint16_t cc_num() const {
 		return panel_knob_id - MidiCC0;
+	}
+
+	uint16_t notegate_num() const {
+		return panel_knob_id - MidiGateNote0;
 	}
 
 	bool operator==(const MappedKnob &other) const {
