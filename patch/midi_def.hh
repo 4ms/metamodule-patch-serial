@@ -174,9 +174,17 @@ constexpr uint32_t strip_midi_channel(uint32_t panel_jack_id) {
 // Returns 0 for Omni, or 1-16 for MIDI channel 1-16
 constexpr uint32_t midi_channel(uint32_t panel_jack_id) {
 	if ((panel_jack_id & 0x0800) && strip_midi_channel(panel_jack_id) < 0x400)
-		return panel_jack_id & 0xF000;
+		return ((panel_jack_id >> 12) & 0xF) + 1; //1-16
 	else
 		return 0;
+}
+
+// midi_chan: 1-16 for a MIDI Channel. 0 for Omni
+constexpr MidiMappings set_midi_channel(uint32_t panel_jack_id, uint32_t midi_chan) {
+	if (midi_chan >= 1 && midi_chan <= 16)
+		return MidiMappings(strip_midi_channel(panel_jack_id) | 0x0800 | ((midi_chan - 1) << 12));
+	else
+		return MidiMappings(strip_midi_channel(panel_jack_id));
 }
 
 constexpr std::optional<uint32_t> midi_note_pitch(uint32_t panel_jack_id) {
