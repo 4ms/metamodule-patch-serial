@@ -5,6 +5,41 @@
 #include <cstdint>
 #include <optional>
 
+// Bit layout:
+// 0xCNnn
+//    ^---- N & 0b0111: is the Event Type (Note, Gate, Vel, Aft, Retrig, CC, GateNote, Clk)
+//    ^---- N & 0b1000: 0: MIDI Omni (all channels). 1: MIDI channel is specified by bits 12-15 ("C")
+//   ^----- C: MIDI Channel (0x0-0xF == 1-16). Top bit of "N" must be set if channel is used
+//
+// Where Nnn can be:
+// 0x1nn
+//     ^--- Polychannel: 0-7 (which poly note the event refers to)
+//    ^---- Event (0:Note, 1:Gate, 2: Vel, 3: Aft, 4: Retrig)
+//   ^----- 1: MIDI Note-based event
+//
+// 0x2nn
+//    ^^--- 00-7F: CC number, or 0x80 == PitchWheel
+//   ^----- 2: MIDI CC
+//
+// 0x3nn
+//    ^^--- 00-7F: note number
+//   ^----- 3: MIDI GateNote (gate held high while note is pressed)
+//
+// 0x4nn
+//    ^^--- division amount (relative to 24ppqn)
+//   ^----- 4: MIDI Clock
+//
+// 0x501: Start
+// 0x501: Stop
+// 0x502: Continue
+//
+// 0x6xx: unused
+// 0x7xx: unused
+//
+// Note: Bit 12 (0x800) must be set in order for MIDI channel to be considered valid
+// Note: Channel does not have any meaning for MIDI Clock or Transport events
+//
+
 enum MidiMappings {
 	MidiMonoNoteJack = 0x100,
 	MidiNote2Jack,
@@ -94,6 +129,7 @@ static constexpr size_t NumMidiClockJacks = MidiClockDiv96Jack - MidiClockJack +
 
 namespace MetaModule::Midi
 {
+
 static constexpr unsigned PitchBendCC = 128;
 
 // Converts MIDI 7-bit to volts
@@ -130,43 +166,64 @@ static_assert(polychan(MidiNote8Jack).value() == 8);
 static_assert(polychan(MidiRetrig2Jack).value() == 2);
 static_assert(polychan(MidiRetrig8Jack).value() == 8);
 
+constexpr uint32_t strip_midi_channel(uint32_t panel_jack_id) {
+	return panel_jack_id & 0x07FF; //clear channel bits and omni bit
+}
+
+constexpr std::optional<uint32_t> midi_channel(uint32_t panel_jack_id) {
+	if (panel_jack_id & 0x0800)
+		return panel_jack_id & 0xF000;
+	else
+		return std::nullopt;
+}
+
 constexpr std::optional<uint32_t> midi_note_pitch(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoNoteJack, MidiNote8Jack);
 }
 
 constexpr std::optional<uint32_t> midi_note_gate(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoGateJack, MidiGate8Jack);
 }
 
 constexpr std::optional<uint32_t> midi_note_vel(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoVelJack, MidiVel8Jack);
 }
 
 constexpr std::optional<uint32_t> midi_note_aft(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoAftertouchJack, MidiAftertouch8Jack);
 }
 
 constexpr std::optional<uint32_t> midi_note_retrig(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoRetrigJack, MidiRetrig8Jack);
 }
 
 constexpr std::optional<uint32_t> midi_gate(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiGateNote0, MidiGateNote127);
 }
 
 constexpr std::optional<uint32_t> midi_cc(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiCC0, MidiPitchWheelJack);
 }
 
 constexpr std::optional<uint32_t> midi_clk(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return panel_jack_id == MidiClockJack ? std::optional<uint32_t>{0} : std::nullopt;
 }
 
 constexpr std::optional<uint32_t> midi_divclk(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiClockDiv1Jack, MidiClockDiv96Jack);
 }
 
 constexpr std::optional<uint32_t> midi_transport(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiStartJack, MidiContinueJack);
 }
 
