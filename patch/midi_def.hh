@@ -12,23 +12,24 @@
 //   ^----- C: MIDI Channel (0x0-0xF == 1-16). Top bit of "N" must be set if channel is used
 //
 // Where Nnn can be:
-// 0x1nn
+// 0x1nn    Note-based events
 //     ^--- Polychannel: 0-7 (which poly note the event refers to)
 //    ^---- Event (0:Note, 1:Gate, 2: Vel, 3: Aft, 4: Retrig)
 //   ^----- 1: MIDI Note-based event
 //
-// 0x2nn
+// 0x2nn    CC
 //    ^^--- 00-7F: CC number, or 0x80 == PitchWheel
 //   ^----- 2: MIDI CC
 //
-// 0x3nn
+// 0x3nn    Gate on Note events
 //    ^^--- 00-7F: note number
 //   ^----- 3: MIDI GateNote (gate held high while note is pressed)
 //
-// 0x4nn
+// 0x4nn    Clock
 //    ^^--- division amount (relative to 24ppqn)
 //   ^----- 4: MIDI Clock
 //
+//          Transport
 // 0x501: Start
 // 0x501: Stop
 // 0x502: Continue
@@ -170,11 +171,12 @@ constexpr uint32_t strip_midi_channel(uint32_t panel_jack_id) {
 	return panel_jack_id & 0x07FF; //clear channel bits and omni bit
 }
 
-constexpr std::optional<uint32_t> midi_channel(uint32_t panel_jack_id) {
-	if (panel_jack_id & 0x0800)
+// Returns 0 for Omni, or 1-16 for MIDI channel 1-16
+constexpr uint32_t midi_channel(uint32_t panel_jack_id) {
+	if ((panel_jack_id & 0x0800) && strip_midi_channel(panel_jack_id) < 0x400)
 		return panel_jack_id & 0xF000;
 	else
-		return std::nullopt;
+		return 0;
 }
 
 constexpr std::optional<uint32_t> midi_note_pitch(uint32_t panel_jack_id) {
