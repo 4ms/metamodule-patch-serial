@@ -96,6 +96,7 @@ PatchData:
         module_id: 3
         param_id: 4
         curve_type: 2
+        midi_chan: 3
         min: 0.2
         max: 0.85
       - panel_knob_id: 3
@@ -110,6 +111,7 @@ PatchData:
         module_id: 5
         param_id: 6
         curve_type: 4
+        midi_chan: 0
         min: 0.4
         max: 0.65
   vcvModuleStates:
@@ -194,6 +196,7 @@ PatchData:
 	CHECK(pd.knob_sets[0].set[0].module_id == 2);
 	CHECK(pd.knob_sets[0].set[0].param_id == 3);
 	CHECK(pd.knob_sets[0].set[0].curve_type == 1);
+	CHECK(pd.knob_sets[0].set[0].midi_chan == 0);
 	CHECK(pd.knob_sets[0].set[0].min == 0.1f);
 	CHECK(pd.knob_sets[0].set[0].max == 0.95f);
 
@@ -202,6 +205,7 @@ PatchData:
 	CHECK(pd.knob_sets[0].set[1].module_id == 3);
 	CHECK(pd.knob_sets[0].set[1].param_id == 4);
 	CHECK(pd.knob_sets[0].set[1].curve_type == 2);
+	CHECK(pd.knob_sets[0].set[1].midi_chan == 3);
 	CHECK(pd.knob_sets[0].set[1].min == 0.2f);
 	CHECK(pd.knob_sets[0].set[1].max == 0.85f);
 
@@ -209,6 +213,7 @@ PatchData:
 	CHECK(pd.knob_sets[0].set[2].module_id == 4);
 	CHECK(pd.knob_sets[0].set[2].param_id == 5);
 	CHECK(pd.knob_sets[0].set[2].curve_type == 3);
+	CHECK(pd.knob_sets[0].set[2].midi_chan == 0);
 	CHECK(pd.knob_sets[0].set[2].min == 0.3f);
 	CHECK(pd.knob_sets[0].set[2].max == 0.75f);
 
@@ -218,6 +223,7 @@ PatchData:
 	CHECK(pd.knob_sets[1].set[0].module_id == 5);
 	CHECK(pd.knob_sets[1].set[0].param_id == 6);
 	CHECK(pd.knob_sets[1].set[0].curve_type == 4);
+	CHECK(pd.knob_sets[1].set[0].midi_chan == 0);
 	CHECK(pd.knob_sets[1].set[0].min == 0.4f);
 	CHECK(pd.knob_sets[1].set[0].max == 0.65f);
 

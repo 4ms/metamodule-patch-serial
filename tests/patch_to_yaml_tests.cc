@@ -72,6 +72,15 @@ TEST_CASE("Correct yaml output produced") {
 		.min = 0.4f,
 		.max = 0.65f,
 	});
+	set1.set.push_back(MappedKnob{
+		.panel_knob_id = 1,
+		.module_id = 2,
+		.param_id = 3,
+		.curve_type = 4,
+		.midi_chan = 16,
+		.min = 0.f,
+		.max = 1.f,
+	});
 	pd.knob_sets.push_back(set1);
 
 	pd.static_knobs.push_back({1, 2, 0.3f});
@@ -195,6 +204,13 @@ R"(PatchData:
           curve_type: 4
           min: 0.4
           max: 0.65
+        - panel_knob_id: 1
+          module_id: 2
+          param_id: 3
+          curve_type: 4
+          min: 0
+          max: 1
+          midi_chan: 16
   midi_maps:
     name: ''
     set: []

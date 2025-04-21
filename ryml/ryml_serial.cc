@@ -22,6 +22,8 @@ void write(ryml::NodeRef *n, MappedKnob const &mapped_knob) {
 	n->append_child() << ryml::key("max") << mapped_knob.max;
 	if (mapped_knob.alias_name.length())
 		n->append_child() << ryml::key("alias_name") << mapped_knob.alias_name;
+	if (mapped_knob.midi_chan > 0)
+		n->append_child() << ryml::key("midi_chan") << mapped_knob.midi_chan;
 }
 
 void write(ryml::NodeRef *n, MappedKnobSet const &knob_set) {
@@ -218,6 +220,11 @@ bool read(ryml::ConstNodeRef const &n, MappedKnob *k) {
 	n["curve_type"] >> k->curve_type;
 	n["min"] >> k->min;
 	n["max"] >> k->max;
+
+	if (n.has_child("midi_chan"))
+		n["midi_chan"] >> k->midi_chan;
+	else
+		k->midi_chan = 0;
 
 	if (n.has_child("alias_name")) {
 		if (n["alias_name"].val().size())
