@@ -42,6 +42,16 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	if (patchdata.has_child("midi_poly_num"))
 		patchdata["midi_poly_num"] >> pd.midi_poly_num;
 
+	if (patchdata.has_child("midi_poly_mode")) {
+		unsigned x;
+		patchdata["midi_poly_mode"] >> x;
+		if (x >= 0 && x <= 3)
+			pd.midi_poly_mode = static_cast<PolyMode>(x);
+	}
+
+	if (patchdata.has_child("midi_pitchwheel_range"))
+		patchdata["midi_pitchwheel_range"] >> pd.midi_pitchwheel_range;
+
 	if (patchdata.has_child("mapped_lights"))
 		patchdata["mapped_lights"] >> pd.mapped_lights;
 

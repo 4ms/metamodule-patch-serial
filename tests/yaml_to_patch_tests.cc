@@ -1,7 +1,6 @@
 #include "../ryml/ryml_serial.hh"
 #include "../yaml_to_patch.hh"
 #include "doctest.h"
-#include <iostream>
 
 TEST_CASE("Correct header and data produced from yaml") {
 	std::string yamlhdr =
@@ -114,6 +113,9 @@ PatchData:
         midi_chan: 0
         min: 0.4
         max: 0.65
+  midi_poly_num: 2
+  midi_poly_mode: 3
+  midi_pitchwheel_range: 4.0
   vcvModuleStates:
     - module_id: 2
       data: |-
@@ -240,4 +242,8 @@ PatchData:
 	CHECK(pd.module_states[1].state_data.size() == 1368);
 	CHECK(pd.module_states[1].state_data[0] == 'A');
 	CHECK(pd.module_states[1].state_data[1367] == '=');
+
+	CHECK(pd.midi_poly_num == 2);
+	CHECK(pd.midi_poly_mode == PolyMode::Mpe);
+	CHECK(pd.midi_pitchwheel_range == doctest::Approx(4.f));
 }
