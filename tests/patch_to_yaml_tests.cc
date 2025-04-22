@@ -215,6 +215,8 @@ R"(PatchData:
     name: ''
     set: []
   midi_poly_num: 4
+  midi_poly_mode: 0
+  midi_pitchwheel_range: 1
   mapped_lights:
     - panel_light_id: 123
       module_id: 456

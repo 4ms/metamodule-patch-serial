@@ -22,6 +22,8 @@ struct PatchData {
 	std::vector<ModuleInitState> module_states;
 	MappedKnobSet midi_maps;
 	uint32_t midi_poly_num = 1;
+	PolyMode midi_poly_mode = PolyMode::Rotate;
+	float midi_pitchwheel_range = 1.f;
 
 	static constexpr uint32_t MIDIKnobSet = 0xFFFFFFFF;
 
