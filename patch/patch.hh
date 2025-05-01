@@ -72,6 +72,11 @@ struct MappedKnob {
 		return panel_knob_id >= FirstButton && panel_knob_id <= LastButton;
 	}
 
+	std::optional<uint32_t> ext_button() const {
+		using namespace MetaModule;
+		return MathTools::between<uint32_t>(panel_knob_id, FirstButton, LastButton);
+	}
+
 	uint16_t cc_num() const {
 		return panel_knob_id - MidiCC0;
 	}
