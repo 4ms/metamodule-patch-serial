@@ -11,3 +11,5 @@ enum {
 	FirstButton = LastPossibleKnob + 1,			  //44
 	LastButton = LastPossibleKnob + MaxExpButtons //75
 };
+
+static constexpr auto NumTotalParams = LastButton;
