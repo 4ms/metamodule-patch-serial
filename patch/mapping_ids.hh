@@ -4,6 +4,9 @@ static constexpr auto MaxPanelKnobs = 12;
 static constexpr auto MaxExpButtons = 32;
 static constexpr auto MaxExpPots = 32;
 
+static constexpr auto ButtonsPerExpander = 8;
+static constexpr auto MaxButtonExpanders = MaxExpButtons / ButtonsPerExpander;
+
 enum {
 	FirstExpKnob = MaxPanelKnobs,					   //12
 	LastPossibleKnob = MaxPanelKnobs + MaxExpPots - 1, //43
