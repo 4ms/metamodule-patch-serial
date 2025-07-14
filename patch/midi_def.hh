@@ -5,29 +5,30 @@
 #include <cstdint>
 #include <optional>
 
-// Bit layout:
+// Bit layout (16 bits total):
 // 0xCNnn
-//    ^---- N & 0b0111: is the Event Type (Note, Gate, Vel, Aft, Retrig, CC, GateNote, Clk)
-//    ^---- N & 0b1000: 0: MIDI Omni (all channels). 1: MIDI channel is specified by bits 12-15 ("C")
-//   ^----- C: MIDI Channel (0x0-0xF == 1-16). Top bit of "N" must be set if channel is used
+//    ^---- N & 0b0111 (bits 8-10): is the Event Type (Note, Gate, Vel, Aft, Retrig, CC, GateNote, Clk, see below)
+//    ^---- N & 0b1000 (bit 11): 0: MIDI Omni (all channels). 1: MIDI channel is specified by bits 12-15 ("C")
+//   ^----- C: (bits 12-15) MIDI Channel (0x0-0xF == 1-16). Note that top bit of "N" (bit 11) must be set if channel is used
 //
-// Where Nnn can be:
+// Bits 0-7 have different meanings depending on the Event Type.
+// Event types:
 // 0x1nn    Note-based events
-//     ^--- Polychannel: 0-7 (which poly note the event refers to)
-//    ^---- Event (0:Note, 1:Gate, 2: Vel, 3: Aft, 4: Retrig)
-//   ^----- 1: MIDI Note-based event
+//     ^--- Polychannel: (bits 0-3): 0-7 (which poly note the event refers to)
+//    ^---- Event (bits 4-7): 0=Note, 1=Gate, 2=Vel, 3=Aft, 4=Retrig
+//   ^----- Event type (bits 8-11) == 1: MIDI Note-based event
 //
 // 0x2nn    CC
 //    ^^--- 00-7F: CC number, or 0x80 == PitchWheel
-//   ^----- 2: MIDI CC
+//   ^----- Event type (bits 8-11) == 2: MIDI CC
 //
 // 0x3nn    Gate on Note events
 //    ^^--- 00-7F: note number
-//   ^----- 3: MIDI GateNote (gate held high while note is pressed)
+//   ^----- Event type (bits 8-11) == 3: MIDI GateNote (gate held high while note is pressed)
 //
 // 0x4nn    Clock
 //    ^^--- division amount (relative to 24ppqn)
-//   ^----- 4: MIDI Clock
+//   ^----- Event type (bits 8-11) == 4: MIDI Clock
 //
 //          Transport
 // 0x501: Start
@@ -37,7 +38,7 @@
 // 0x6xx: unused
 // 0x7xx: unused
 //
-// Note: Bit 12 (0x800) must be set in order for MIDI channel to be considered valid
+// Note: Bit 11 (0x800) must be set in order for MIDI channel to be considered valid
 // Note: Channel does not have any meaning for MIDI Clock or Transport events
 //
 
@@ -153,20 +154,6 @@ constexpr float note_to_volts(uint8_t note) {
 static_assert(note_to_volts(60) == 0);
 static_assert(note_to_volts(72) == 1);
 
-// Returns 1-8 for the poly chan of a MidiMapping
-constexpr std::optional<uint8_t> polychan(unsigned mapping) {
-	if (mapping >= MidiMonoNoteJack && mapping < MidiCC0) {
-		return std::min<uint8_t>(mapping & 0x0F, 7) + 1;
-	}
-	return std::nullopt;
-}
-
-static_assert(polychan(MidiMonoNoteJack).value() == 1);
-static_assert(polychan(MidiNote2Jack).value() == 2);
-static_assert(polychan(MidiNote8Jack).value() == 8);
-static_assert(polychan(MidiRetrig2Jack).value() == 2);
-static_assert(polychan(MidiRetrig8Jack).value() == 8);
-
 constexpr uint32_t strip_midi_channel(uint32_t panel_jack_id) {
 	return panel_jack_id & 0x07FF; //clear channel bits and omni bit
 }
@@ -186,6 +173,23 @@ constexpr MidiMappings set_midi_channel(uint32_t panel_jack_id, uint32_t midi_ch
 	else
 		return MidiMappings(strip_midi_channel(panel_jack_id));
 }
+
+// Returns 1-8 for the poly chan of a MidiMapping
+constexpr std::optional<uint8_t> polychan(unsigned mapping) {
+	mapping = strip_midi_channel(mapping);
+	if (mapping >= MidiMonoNoteJack && mapping < MidiCC0) {
+		return std::min<uint8_t>(mapping & 0x0F, 7) + 1;
+	}
+	return std::nullopt;
+}
+
+static_assert(polychan(MidiMonoNoteJack).value() == 1);
+static_assert(polychan(MidiNote2Jack).value() == 2);
+static_assert(polychan(MidiNote8Jack).value() == 8);
+static_assert(polychan(MidiRetrig2Jack).value() == 2);
+static_assert(polychan(MidiRetrig8Jack).value() == 8);
+static_assert(polychan(MidiMonoNoteJack + /*no omni:*/ (1 << 11) + /*channel 7*/ (6 << 12)).value() == 1);
+static_assert(polychan(MidiNote2Jack + /*no omni:*/ (1 << 11) + /*channel 16*/ (0xF << 12)).value() == 2);
 
 constexpr std::optional<uint32_t> midi_note_pitch(uint32_t panel_jack_id) {
 	panel_jack_id = strip_midi_channel(panel_jack_id);
