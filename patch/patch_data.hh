@@ -210,6 +210,17 @@ struct PatchData {
 		// Remove any cables that now have no inputs
 		std::erase_if(int_cables, [](auto cable) { return (cable.ins.size() == 0); });
 
+		remove_injack_mappings(jack);
+	}
+
+	void disconnect_outjack(Jack jack) {
+		// Remove any cables with this output
+		std::erase_if(int_cables, [jack](auto cable) { return (cable.out == jack); });
+
+		remove_outjack_mappings(jack);
+	}
+
+	void remove_injack_mappings(Jack jack) {
 		// Remove from inputs on all panel mappings
 		for (auto &map : mapped_ins) {
 			std::erase(map.ins, jack);
@@ -220,10 +231,7 @@ struct PatchData {
 		update_midi_poly_num();
 	}
 
-	void disconnect_outjack(Jack jack) {
-		// Remove any cables with this output
-		std::erase_if(int_cables, [jack](auto cable) { return (cable.out == jack); });
-
+	void remove_outjack_mappings(Jack jack) {
 		// Remove any panel mappings with this output
 		std::erase_if(mapped_outs, [jack](auto map) { return (map.out == jack); });
 	}
