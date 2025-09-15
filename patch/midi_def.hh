@@ -241,4 +241,9 @@ constexpr std::optional<uint32_t> midi_transport(uint32_t panel_jack_id) {
 	return MathTools::between<uint32_t>(panel_jack_id, MidiStartJack, MidiContinueJack);
 }
 
+constexpr bool is_midi_panel_id(uint32_t id) {
+	auto sid = Midi::strip_midi_channel(id);
+	return (sid >= MidiMonoNoteJack && sid < LastMidiJack);
+}
+
 }; // namespace MetaModule::Midi
