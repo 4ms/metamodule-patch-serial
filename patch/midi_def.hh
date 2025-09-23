@@ -6,11 +6,13 @@
 #include <optional>
 
 // Bit layout (16 bits total):
-// 0xCNnn
-//    ^---- N & 0b0111 (bits 8-10): is the Event Type (Note, Gate, Vel, Aft, Retrig, CC, GateNote, Clk, see below)
-//    ^---- N & 0b1000 (bit 11): 0: MIDI Omni (all channels). 1: MIDI channel is specified by bits 12-15 ("C")
-//   ^----- C: (bits 12-15) MIDI Channel (0x0-0xF == 1-16). Note that top bit of "N" (bit 11) must be set if channel is used
+// 0bCCCC cNNN nnnn nnnn
 //
+// CCCC: MIDI Channel (values 0-15 means channel 1-16)
+// c: If 0 then Omni mode (ignore CCCC value). If 1 then use CCCC for MIDI channel
+// NNN: Event type: 1 = Note, 2 = CC, 3 = GateOn, 4 = Clock, 5 = Transport
+// nnnn nnnn: Data specific to the event type (see below)
+
 // Bits 0-7 have different meanings depending on the Event Type.
 // Event types:
 // 0x1nn    Note-based events
