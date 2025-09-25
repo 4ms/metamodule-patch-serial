@@ -236,6 +236,18 @@ struct PatchData {
 		std::erase_if(mapped_outs, [jack](auto map) { return (map.out == jack); });
 	}
 
+	const MappedInputJack *find_mapped_midi_injack(Jack jack) const {
+		for (auto &m : mapped_ins) {
+			if (!Midi::is_midi_panel_id(m.panel_jack_id))
+				continue;
+			for (auto &j : m.ins) {
+				if (j == jack)
+					return &m;
+			}
+		}
+		return nullptr;
+	}
+
 	const MappedInputJack *find_mapped_injack(Jack jack) const {
 		for (auto &m : mapped_ins) {
 			for (auto &j : m.ins) {
