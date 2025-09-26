@@ -55,9 +55,18 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	if (patchdata.has_child("mapped_lights"))
 		patchdata["mapped_lights"] >> pd.mapped_lights;
 
-	// Check for VCV Module State data
 	if (patchdata.has_child("vcvModuleStates"))
 		patchdata["vcvModuleStates"] >> pd.module_states;
+
+	if (patchdata.has_child("suggested_samplerate"))
+		patchdata["suggested_samplerate"] >> pd.suggested_samplerate;
+	else
+		pd.suggested_samplerate = 0;
+
+	if (patchdata.has_child("suggested_blocksize"))
+		patchdata["suggested_blocksize"] >> pd.suggested_blocksize;
+	else
+		pd.suggested_blocksize = 0;
 
 	return true;
 }
