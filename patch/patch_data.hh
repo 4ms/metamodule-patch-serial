@@ -310,6 +310,22 @@ struct PatchData {
 			mapped_outs.push_back({panel_jack_id, jack});
 	}
 
+	void set_panel_in_alias(uint16_t panel_jack_id, std::string_view alias) {
+		for (auto &m : mapped_ins) {
+			if (m.panel_jack_id == panel_jack_id) {
+				m.alias_name.copy(alias);
+			}
+		}
+	}
+
+	void set_panel_out_alias(uint16_t panel_jack_id, std::string_view alias) {
+		for (auto &m : mapped_outs) {
+			if (m.panel_jack_id == panel_jack_id) {
+				m.alias_name.copy(alias);
+			}
+		}
+	}
+
 	const InternalCable *find_internal_cable_with_outjack(Jack out_jack) const {
 		for (auto &c : int_cables) {
 			if (c.out == out_jack && c.ins.size() > 0) {
