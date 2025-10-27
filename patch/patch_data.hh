@@ -1,6 +1,7 @@
 #pragma once
 #include "module_type_slug.hh"
 #include "patch.hh"
+
 #include <algorithm>
 #include <optional>
 #include <vector>
@@ -24,6 +25,9 @@ struct PatchData {
 	uint32_t midi_poly_num = 1;
 	PolyMode midi_poly_mode = PolyMode::Rotate;
 	float midi_pitchwheel_range = 1.f;
+
+	uint32_t suggested_samplerate;
+	uint32_t suggested_blocksize;
 
 	static constexpr uint32_t MIDIKnobSet = 0xFFFFFFFF;
 

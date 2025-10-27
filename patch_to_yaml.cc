@@ -27,6 +27,8 @@ static ryml::Tree create_tree(PatchData const &pd, ryml::Tree &tree) {
 	data["midi_pitchwheel_range"] << pd.midi_pitchwheel_range;
 	data["mapped_lights"] << pd.mapped_lights;
 	data["vcvModuleStates"] << pd.module_states;
+	data["suggested_samplerate"] << pd.suggested_samplerate;
+	data["suggested_blocksize"] << pd.suggested_blocksize;
 
 	return tree;
 }
