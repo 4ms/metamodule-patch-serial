@@ -1,3 +1,4 @@
+// TODO: move to boards/euro26hp
 #pragma once
 
 static constexpr auto MaxPanelKnobs = 12;
