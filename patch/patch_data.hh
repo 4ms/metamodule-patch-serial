@@ -200,7 +200,7 @@ struct PatchData {
 	}
 
 	// Adds a light mapping, or updates the panel_light_id if the module light is already mapped
-	void add_update_mapped_light(MappedLight &map) {
+	void add_update_mapped_light(MappedLight const &map) {
 		for (auto &m : mapped_lights) {
 			if (m.module_id == map.module_id && m.light_id == map.light_id) {
 				m.panel_light_id = map.panel_light_id;
