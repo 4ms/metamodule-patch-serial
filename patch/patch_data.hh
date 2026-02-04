@@ -199,6 +199,36 @@ struct PatchData {
 		static_knobs.push_back({(uint16_t)module_id, (uint16_t)param_id, val});
 	}
 
+	// Adds a light mapping, or updates the panel_light_id if the module light is already mapped
+	void add_update_mapped_light(MappedLight &map) {
+		for (auto &m : mapped_lights) {
+			if (m.module_id == map.module_id && m.light_id == map.light_id) {
+				m.panel_light_id = map.panel_light_id;
+				return;
+			}
+		}
+		mapped_lights.push_back(map);
+	}
+
+	// Given a module light, return the MappedLight or nullptr if it isn't mapped
+	const MappedLight *find_mapped_light(uint32_t module_id, uint32_t light_id) const {
+		for (auto &m : mapped_lights) {
+			if (m.module_id == module_id && m.light_id == light_id) {
+				return &m;
+			}
+		}
+		return nullptr;
+	}
+
+	void remove_mapped_light(uint32_t panel_light_id) {
+		std::erase_if(mapped_lights, [=](auto map) { return (map.panel_light_id == panel_light_id); });
+	}
+
+	void remove_mapped_light(uint32_t module_id, uint32_t light_id) {
+		std::erase_if(mapped_lights,
+					  [=](auto map) { return (map.module_id == module_id && map.light_id == light_id); });
+	}
+
 	void add_internal_cable(Jack in, Jack out) {
 		if (auto existing_cable_out = _find_internal_cable_with_outjack(out))
 			existing_cable_out->ins.push_back(in);
