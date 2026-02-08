@@ -29,6 +29,7 @@ static ryml::Tree create_tree(PatchData const &pd, ryml::Tree &tree) {
 	data["vcvModuleStates"] << pd.module_states;
 	data["suggested_samplerate"] << pd.suggested_samplerate;
 	data["suggested_blocksize"] << pd.suggested_blocksize;
+	data["bypassed_modules"] << pd.bypassed_modules;
 
 	return tree;
 }

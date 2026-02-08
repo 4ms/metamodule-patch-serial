@@ -239,6 +239,7 @@ R"(PatchData:
          "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNP
   suggested_samplerate: 96000
   suggested_blocksize: 32
+  bypassed_modules: []
 )");
 	// clang-format on
 }
