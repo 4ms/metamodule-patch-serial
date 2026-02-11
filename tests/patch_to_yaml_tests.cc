@@ -104,6 +104,9 @@ TEST_CASE("Correct yaml output produced") {
 	pd.suggested_samplerate = 96000;
 	pd.suggested_blocksize = 32;
 
+	pd.set_module_bypassed(1, true);
+	pd.set_module_bypassed(3, true);
+
 	auto yaml = patch_to_yaml_string(pd);
 	CHECK(yaml ==
 		  // clang-format off
@@ -239,7 +242,9 @@ R"(PatchData:
          "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNPRTVXZ\^`bdfhjlnprtvxz|~!#%')+-/13579;=?ACEGIKMOQSUWY[]_acegikmoqsuwy{} "$&(*,.02468:<>@BDFHJLNP
   suggested_samplerate: 96000
   suggested_blocksize: 32
-  bypassed_modules: []
+  bypassed_modules:
+    - 1
+    - 3
 )");
 	// clang-format on
 }
