@@ -22,6 +22,7 @@ struct PatchData {
 	std::vector<MappedLight> mapped_lights;
 	std::vector<ModuleInitState> module_states;
 	MappedKnobSet midi_maps;
+	std::vector<uint16_t> bypassed_modules;
 	uint32_t midi_poly_num = 1;
 	PolyMode midi_poly_mode = PolyMode::Rotate;
 	float midi_pitchwheel_range = 1.f;
@@ -389,6 +390,21 @@ struct PatchData {
 		return module_id;
 	}
 
+	bool is_module_bypassed(uint16_t module_id) const {
+		return std::find(bypassed_modules.begin(), bypassed_modules.end(), module_id) != bypassed_modules.end();
+	}
+
+	void set_module_bypassed(uint16_t module_id, bool bypassed) {
+		auto it = std::find(bypassed_modules.begin(), bypassed_modules.end(), module_id);
+		if (bypassed) {
+			if (it == bypassed_modules.end())
+				bypassed_modules.push_back(module_id);
+		} else {
+			if (it != bypassed_modules.end())
+				bypassed_modules.erase(it);
+		}
+	}
+
 	void remove_module(unsigned module_id) {
 		if (module_id >= module_slugs.size())
 			return;
@@ -457,6 +473,11 @@ struct PatchData {
 			}
 			return state;
 		});
+
+		for (auto &id : bypassed_modules) {
+			if (id > module_id)
+				id--;
+		}
 	}
 
 	void blank_out_module(unsigned module_id) {
@@ -486,6 +507,8 @@ struct PatchData {
 		std::erase_if(midi_maps.set, [=](MappedKnob &map) { return map.module_id == module_id; });
 
 		std::erase_if(module_states, [=](ModuleInitState &state) { return state.module_id == module_id; });
+
+		std::erase(bypassed_modules, static_cast<uint16_t>(module_id));
 	}
 
 private:

@@ -68,6 +68,9 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	else
 		pd.suggested_blocksize = 0;
 
+	if (patchdata.has_child("bypassed_modules"))
+		patchdata["bypassed_modules"] >> pd.bypassed_modules;
+
 	return true;
 }
 
