@@ -1,4 +1,5 @@
 #include "../patch_to_yaml.hh"
+#include "../yaml_to_patch.hh"
 #include "doctest.h"
 #include "ryml_serial.hh"
 #include <iostream>
@@ -106,6 +107,9 @@ TEST_CASE("Correct yaml output produced") {
 
 	pd.set_module_bypassed(1, true);
 	pd.set_module_bypassed(3, true);
+
+	pd.set_module_alias(1, "Lead");
+	pd.set_module_alias(3, "Pad");
 
 	auto yaml = patch_to_yaml_string(pd);
 	CHECK(yaml ==
@@ -245,6 +249,68 @@ R"(PatchData:
   bypassed_modules:
     - 1
     - 3
+  module_aliases:
+    - module_id: 1
+      alias_name: Lead
+    - module_id: 3
+      alias_name: Pad
 )");
 	// clang-format on
+}
+
+TEST_CASE("module_aliases round-trip") {
+	MetaModule::PatchData pd{
+		.module_slugs{"HubMedium", "VCF", "VCF", "VCF"},
+	};
+	pd.patch_name = "alias_test";
+	pd.set_module_alias(1, "Lead");
+	pd.set_module_alias(2, "Bassline");
+	pd.set_module_alias(3, "Pad");
+
+	auto yaml = patch_to_yaml_string(pd);
+
+	MetaModule::PatchData pd2;
+	bool ok = yaml_string_to_patch(yaml, pd2);
+	CHECK(ok);
+	CHECK(pd2.get_module_alias(1) == "Lead");
+	CHECK(pd2.get_module_alias(2) == "Bassline");
+	CHECK(pd2.get_module_alias(3) == "Pad");
+	CHECK(pd2.get_module_alias(0).empty());
+}
+
+TEST_CASE("module_aliases backward compat - missing field") {
+	// A YAML with no module_aliases field should deserialize fine with empty aliases
+	std::string yaml = R"(PatchData:
+  patch_name: old_patch
+  module_slugs:
+    0: HubMedium
+    1: VCF
+  int_cables: []
+  mapped_ins: []
+  mapped_outs: []
+  static_knobs: []
+  mapped_knobs: []
+  midi_maps:
+    name: ''
+    set: []
+)";
+
+	MetaModule::PatchData pd;
+	bool ok = yaml_string_to_patch(yaml, pd);
+	CHECK(ok);
+	CHECK(pd.module_aliases.empty());
+	CHECK(pd.get_module_alias(1).empty());
+}
+
+TEST_CASE("set_module_alias clear with empty string") {
+	MetaModule::PatchData pd{
+		.module_slugs{"HubMedium", "VCF"},
+	};
+	pd.patch_name = "alias_clear_test";
+	pd.set_module_alias(1, "Lead");
+	CHECK(pd.get_module_alias(1) == "Lead");
+
+	pd.set_module_alias(1, "");
+	CHECK(pd.get_module_alias(1).empty());
+	CHECK(pd.module_aliases.empty());
 }

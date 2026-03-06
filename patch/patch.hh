@@ -125,6 +125,11 @@ struct ModuleInitState {
 	std::string state_data;
 };
 
+struct ModuleAlias {
+	uint16_t module_id{};
+	AliasNameString alias_name{};
+};
+
 struct MappedLight {
 	uint32_t panel_light_id{};
 	uint16_t module_id{};
@@ -136,5 +141,6 @@ enum class PolyMode { Rotate, Reuse, Reset, Mpe };
 static_assert(sizeof(Jack) == 4, "Jack should be 4B");
 static_assert(sizeof(StaticParam) == 8, "StaticParam should be 8B");
 static_assert(sizeof(AliasNameString) == 32, "AliasNameString should be 32B");
+static_assert(sizeof(ModuleAlias) == 34, "ModuleAlias should be 34B");
 static_assert(sizeof(MappedKnob) == 48, "MappedKnob should be 48B");
 static_assert(sizeof(MappedOutputJack) == 40, "MappedOutputJack should be 40B");

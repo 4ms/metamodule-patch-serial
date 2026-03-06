@@ -23,6 +23,7 @@ struct PatchData {
 	std::vector<ModuleInitState> module_states;
 	MappedKnobSet midi_maps;
 	std::vector<uint16_t> bypassed_modules;
+	std::vector<ModuleAlias> module_aliases;
 	uint32_t midi_poly_num = 1;
 	PolyMode midi_poly_mode = PolyMode::Rotate;
 	float midi_pitchwheel_range = 1.f;
@@ -405,6 +406,30 @@ struct PatchData {
 		}
 	}
 
+	std::string_view get_module_alias(uint16_t module_id) const {
+		for (auto const &a : module_aliases) {
+			if (a.module_id == module_id)
+				return a.alias_name.c_str();
+		}
+		return {};
+	}
+
+	void set_module_alias(uint16_t module_id, std::string_view alias) {
+		auto it = std::find_if(module_aliases.begin(), module_aliases.end(),
+							   [=](auto const &a) { return a.module_id == module_id; });
+		if (it != module_aliases.end()) {
+			if (alias.empty())
+				module_aliases.erase(it);
+			else
+				it->alias_name.copy(alias);
+		} else if (!alias.empty()) {
+			ModuleAlias new_alias;
+			new_alias.module_id = module_id;
+			new_alias.alias_name.copy(alias);
+			module_aliases.push_back(new_alias);
+		}
+	}
+
 	void remove_module(unsigned module_id) {
 		if (module_id >= module_slugs.size())
 			return;
@@ -478,6 +503,11 @@ struct PatchData {
 			if (id > module_id)
 				id--;
 		}
+
+		for (auto &a : module_aliases) {
+			if (a.module_id > module_id)
+				a.module_id--;
+		}
 	}
 
 	void blank_out_module(unsigned module_id) {
@@ -509,6 +539,8 @@ struct PatchData {
 		std::erase_if(module_states, [=](ModuleInitState &state) { return state.module_id == module_id; });
 
 		std::erase(bypassed_modules, static_cast<uint16_t>(module_id));
+
+		std::erase_if(module_aliases, [=](ModuleAlias const &a) { return a.module_id == module_id; });
 	}
 
 private:

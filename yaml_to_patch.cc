@@ -71,6 +71,9 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	if (patchdata.has_child("bypassed_modules"))
 		patchdata["bypassed_modules"] >> pd.bypassed_modules;
 
+	if (patchdata.has_child("module_aliases"))
+		patchdata["module_aliases"] >> pd.module_aliases;
+
 	return true;
 }
 

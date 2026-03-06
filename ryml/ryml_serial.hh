@@ -18,6 +18,7 @@ void write(ryml::NodeRef *n, std::vector<BrandModuleSlug> const &slugs);
 void write(ryml::NodeRef *n, std::vector<ModuleTypeSlug> const &slugs);
 void write(ryml::NodeRef *n, ModuleInitState const &state);
 void write(ryml::NodeRef *n, MappedLight const &map);
+void write(ryml::NodeRef *n, ModuleAlias const &a);
 
 bool read(ryml::ConstNodeRef const &n, Jack *jack);
 bool read(ryml::ConstNodeRef const &n, InternalCable *cable);
@@ -28,3 +29,4 @@ bool read(ryml::ConstNodeRef const &n, MappedKnobSet *ks);
 bool read(ryml::ConstNodeRef const &n, StaticParam *k);
 bool read(ryml::ConstNodeRef const &n, ModuleInitState *m);
 bool read(ryml::ConstNodeRef const &n, MappedLight *m);
+bool read(ryml::ConstNodeRef const &n, ModuleAlias *a);
