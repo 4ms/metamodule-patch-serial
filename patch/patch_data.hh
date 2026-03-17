@@ -305,15 +305,7 @@ struct PatchData {
 	}
 
 	void add_mapped_outjack(uint16_t panel_jack_id, Jack jack) {
-		bool done = false;
-		for (auto &m : mapped_outs) {
-			if (m.panel_jack_id == panel_jack_id) {
-				m.out = jack;
-				done = true;
-			}
-		}
-		if (!done)
-			mapped_outs.push_back({panel_jack_id, jack});
+		mapped_outs.push_back({panel_jack_id, jack});
 	}
 
 	void set_panel_in_alias(uint16_t panel_jack_id, std::string_view alias) {
