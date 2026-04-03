@@ -407,8 +407,8 @@ struct PatchData {
 	}
 
 	void set_module_alias(uint16_t module_id, std::string_view alias) {
-		auto it = std::find_if(module_aliases.begin(), module_aliases.end(),
-							   [=](auto const &a) { return a.module_id == module_id; });
+		auto it = std::find_if(
+			module_aliases.begin(), module_aliases.end(), [=](auto const &a) { return a.module_id == module_id; });
 		if (it != module_aliases.end()) {
 			if (alias.empty())
 				module_aliases.erase(it);
@@ -429,6 +429,8 @@ struct PatchData {
 		blank_out_module(module_id);
 
 		module_slugs.erase(std::next(module_slugs.begin(), module_id));
+
+		// Squash all module ids down:
 
 		std::transform(int_cables.begin(), int_cables.end(), int_cables.begin(), [=](InternalCable &cable) {
 			if (cable.out.module_id > module_id) {
@@ -502,8 +504,9 @@ struct PatchData {
 		}
 	}
 
+	// Removes all cables, mappings, etc for a module
+	// Except: keeps the slug in position
 	void blank_out_module(unsigned module_id) {
-		// use a blank placeholder, and when adding a module replace the first blank placeholder?
 		module_slugs[module_id] = "Blank";
 
 		std::erase_if(int_cables, [=](InternalCable &cable) {
