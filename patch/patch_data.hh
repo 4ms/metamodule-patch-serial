@@ -103,7 +103,9 @@ struct PatchData {
 		uint32_t max_poly_used = 0;
 
 		for (auto const &map : mapped_ins) {
-			if (auto num = Midi::polychan(map.panel_jack_id)) {
+			if (Midi::is_midi_poly_cable(map.panel_jack_id)) {
+				max_poly_used = std::max<uint32_t>(max_poly_used, MaxMidiPolyChannels);
+			} else if (auto num = Midi::polychan(map.panel_jack_id)) {
 				max_poly_used = std::max<uint32_t>(max_poly_used, *num);
 			}
 		}
@@ -568,7 +570,9 @@ private:
 	}
 
 	void update_midi_poly_num(uint16_t panel_jack_id) {
-		if (auto poly = Midi::polychan(panel_jack_id)) {
+		if (Midi::is_midi_poly_cable(panel_jack_id)) {
+			midi_poly_num = std::max<uint32_t>(MaxMidiPolyChannels, midi_poly_num);
+		} else if (auto poly = Midi::polychan(panel_jack_id)) {
 			midi_poly_num = std::max<uint32_t>(*poly, midi_poly_num);
 		}
 	}
