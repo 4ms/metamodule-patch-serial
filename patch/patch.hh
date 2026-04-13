@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-constexpr unsigned MaxKnobSets = 8;
-
 struct Jack {
 	uint16_t module_id;
 	uint16_t jack_id;

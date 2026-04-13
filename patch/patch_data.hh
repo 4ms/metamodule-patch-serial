@@ -9,6 +9,22 @@
 namespace MetaModule
 {
 
+enum KnobSet {
+	DefaultKnobSet,
+	LeftKnobSet,
+	RightKnobSet,
+	RandomKnobSet,
+	PedalKnobSet,
+	GenModKnobSet,
+	VOctKnobSet,
+	CV1KnobSet,
+	CV2KnobSet,
+	CV3KnobSet,
+	CV4KnobSet,
+	MidiKnobSet,
+	NofKnobSets,
+};
+
 struct PatchData {
 	static constexpr size_t DescSize = 255;
 	PatchName patch_name{""};
@@ -29,8 +45,6 @@ struct PatchData {
 	uint32_t suggested_samplerate;
 	uint32_t suggested_blocksize;
 
-	static constexpr uint32_t MIDIKnobSet = 0xFFFFFFFF;
-
 	void blank_patch(std::string_view patch_name) {
 		*this = PatchData{};
 		this->patch_name.copy(patch_name);
@@ -40,7 +54,7 @@ struct PatchData {
 	}
 
 	const MappedKnob *find_mapped_knob(uint32_t set_id, uint32_t module_id, uint32_t param_id) const {
-		if (set_id == MIDIKnobSet)
+		if (set_id == MidiKnobSet)
 			return find_midi_map(module_id, param_id);
 
 		if (set_id < knob_sets.size()) {
@@ -53,7 +67,7 @@ struct PatchData {
 	}
 
 	const MappedKnob *find_mapped_knob(uint32_t set_id, uint16_t panel_knob_id) const {
-		if (set_id == MIDIKnobSet)
+		if (set_id == MidiKnobSet)
 			return find_midi_map(panel_knob_id);
 
 		if (set_id < knob_sets.size()) {
@@ -66,10 +80,10 @@ struct PatchData {
 	}
 
 	const std::optional<uint32_t> find_mapped_knob_idx(uint32_t set_id, uint32_t module_id, uint32_t param_id) const {
-		if (set_id != MIDIKnobSet && set_id >= knob_sets.size())
+		if (set_id != MidiKnobSet && set_id >= knob_sets.size())
 			return std::nullopt;
 
-		auto &knobset = (set_id == MIDIKnobSet) ? midi_maps.set : knob_sets[set_id].set;
+		auto &knobset = (set_id == MidiKnobSet) ? midi_maps.set : knob_sets[set_id].set;
 
 		auto mk = std::find_if(knobset.cbegin(), knobset.cend(), [=](auto m) {
 			return (m.module_id == module_id && m.param_id == param_id);
@@ -110,10 +124,10 @@ struct PatchData {
 
 	// Updates an existing mapped knob, or adds it if it doesn't exist yet
 	bool add_update_mapped_knob(uint32_t set_id, MappedKnob const &map) {
-		if (set_id == MIDIKnobSet)
+		if (set_id == MidiKnobSet)
 			return add_update_midi_map(map);
 
-		if (set_id >= MaxKnobSets)
+		if (set_id >= NofKnobSets)
 			return false;
 
 		if (map.module_id >= module_slugs.size())
@@ -156,13 +170,13 @@ struct PatchData {
 	}
 
 	bool remove_mapping(uint32_t set_id, MappedKnob const &map) {
-		if (set_id != MIDIKnobSet && set_id >= knob_sets.size())
+		if (set_id != MidiKnobSet && set_id >= knob_sets.size())
 			return false;
 
 		if (map.module_id >= module_slugs.size())
 			return false;
 
-		MappedKnobSet &set = (set_id == MIDIKnobSet) ? midi_maps : knob_sets[set_id];
+		MappedKnobSet &set = (set_id == MidiKnobSet) ? midi_maps : knob_sets[set_id];
 
 		auto num_erased = std::erase_if(
 			set.set, [&map](auto m) { return (m.module_id == map.module_id && m.param_id == map.param_id); });
@@ -390,7 +404,7 @@ struct PatchData {
 	}
 
 	const char *valid_knob_set_name(unsigned set_i) const {
-		if (set_i == MIDIKnobSet)
+		if (set_i == MidiKnobSet)
 			return "MIDI";
 
 		if (set_i >= knob_sets.size())
@@ -402,15 +416,19 @@ struct PatchData {
 			return default_knob_set_name[set_i];
 	}
 
-	const char *default_knob_set_name[MaxKnobSets] = {
-		"Knob Set 1",
-		"Knob Set 2",
-		"Knob Set 3",
-		"Knob Set 4",
-		"Knob Set 5",
-		"Knob Set 6",
-		"Knob Set 7",
-		"Knob Set 8",
+	const char *default_knob_set_name[NofKnobSets] = {
+		"Default knob set",
+		"Left knob set",
+		"Right knob set",
+		"Random knob set",
+		"Pedal knob set",
+		"Gen/Mod knob set",
+		"VOct knob set",
+		"CV1 knob set",
+		"CV2 knob set",
+		"CV3 knob set",
+		"CV4 knob set",
+		"MIDI knob set",
 	};
 
 	size_t add_module(std::string_view slug) {
