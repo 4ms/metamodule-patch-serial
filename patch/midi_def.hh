@@ -191,9 +191,7 @@ constexpr bool is_midi_poly_cable(uint32_t id) {
 // Returns 1-8 for the poly chan of a MidiMapping
 constexpr std::optional<uint8_t> polychan(unsigned mapping) {
 	mapping = strip_midi_channel(mapping);
-	if (mapping >= MidiNotePolyJack && mapping <= MidiRetrigPolyJack)
-		return std::nullopt;
-	if (mapping >= MidiMonoNoteJack && mapping < MidiCC0) {
+	if (mapping >= MidiMonoNoteJack && mapping < MidiNotePolyJack) {
 		return std::min<uint8_t>(mapping & 0x0F, 7) + 1;
 	}
 	return std::nullopt;
