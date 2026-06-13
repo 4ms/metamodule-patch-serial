@@ -149,6 +149,18 @@ constexpr float u7_to_volts(uint8_t val) {
 	return (float)val / (127.f / (float)MaxVolts);
 }
 
+// Converts a CC value to volts. The M4 core sends all CC values as 14-bit: in 7-bit
+// mode it left-shifts the 7-bit value by 7 (so 127 => 127<<7 = 16256), and in 14-bit
+// mode it combines the MSB (CC 0-31) and LSB (CC 32-63) into a 0..16383 value. We scale
+// so 7-bit full-scale (16256) maps to MaxVolts exactly, preserving legacy behavior;
+// 14-bit full-scale (16383) therefore reaches very slightly above MaxVolts (~0.8%).
+template<unsigned MaxVolts>
+constexpr float u14cc_to_volts(int16_t val) {
+	return (float)val * (float)MaxVolts / (127.f * 128.f);
+}
+static_assert(u14cc_to_volts<10>(127 << 7) == 10.f);
+static_assert(u14cc_to_volts<10>(0) == 0.f);
+
 template<unsigned NumSemitones>
 constexpr float s14_to_semitones(int16_t val) {
 	return (float)val / (8192.f / ((float)NumSemitones / 12.f));
