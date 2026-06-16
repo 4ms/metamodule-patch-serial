@@ -114,6 +114,7 @@ PatchData:
         min: 0.4
         max: 0.65
   midi_poly_num: 2
+  midi_poly_num_setting: 5
   midi_poly_mode: 3
   midi_pitchwheel_range: 4.0
   vcvModuleStates:
@@ -249,6 +250,7 @@ PatchData:
 	CHECK(pd.module_states[1].state_data[1367] == '=');
 
 	CHECK(pd.midi_poly_num == 2);
+	CHECK(pd.midi_poly_num_setting == 5);
 	CHECK(pd.midi_poly_mode == PolyMode::Mpe);
 	CHECK(pd.midi_pitchwheel_range == doctest::Approx(4.f));
 

@@ -42,6 +42,9 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	if (patchdata.has_child("midi_poly_num"))
 		patchdata["midi_poly_num"] >> pd.midi_poly_num;
 
+	if (patchdata.has_child("midi_poly_num_setting"))
+		patchdata["midi_poly_num_setting"] >> pd.midi_poly_num_setting;
+
 	if (patchdata.has_child("midi_poly_mode")) {
 		unsigned x = 0xFF;
 		patchdata["midi_poly_mode"] >> x;

@@ -25,6 +25,8 @@ struct PatchData {
 	std::vector<uint16_t> bypassed_modules;
 	std::vector<ModuleAlias> module_aliases;
 	uint32_t midi_poly_num = 1;
+	// User-set max poly channels: 0 = Auto (compute from cables), 1-8 = hard-set midi_poly_num
+	uint16_t midi_poly_num_setting = 0;
 	PolyMode midi_poly_mode = PolyMode::Rotate;
 	float midi_pitchwheel_range = 1.f;
 
@@ -100,6 +102,12 @@ struct PatchData {
 	}
 
 	void update_midi_poly_num() {
+		// User hard-set the count: ignore cables
+		if (midi_poly_num_setting > 0) {
+			midi_poly_num = midi_poly_num_setting;
+			return;
+		}
+
 		uint32_t max_poly_used = 0;
 
 		for (auto const &map : mapped_ins) {
@@ -570,6 +578,12 @@ private:
 	}
 
 	void update_midi_poly_num(uint16_t panel_jack_id) {
+		// User hard-set the count: ignore cables
+		if (midi_poly_num_setting > 0) {
+			midi_poly_num = midi_poly_num_setting;
+			return;
+		}
+
 		if (Midi::is_midi_poly_cable(panel_jack_id)) {
 			midi_poly_num = std::max<uint32_t>(MaxMidiPolyChannels, midi_poly_num);
 		} else if (auto poly = Midi::polychan(panel_jack_id)) {
