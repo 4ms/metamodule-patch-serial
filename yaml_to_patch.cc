@@ -33,8 +33,11 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	patchdata["mapped_ins"] >> pd.mapped_ins;
 
 	patchdata["mapped_outs"] >> pd.mapped_outs;
-	patchdata["static_knobs"] >> pd.static_knobs;
-	patchdata["mapped_knobs"] >> pd.knob_sets;
+	if (patchdata.has_child("static_knobs"))
+		patchdata["static_knobs"] >> pd.static_knobs;
+
+	if (patchdata.has_child("mapped_knobs"))
+		patchdata["mapped_knobs"] >> pd.knob_sets;
 
 	if (patchdata.has_child("midi_maps"))
 		patchdata["midi_maps"] >> pd.midi_maps;
