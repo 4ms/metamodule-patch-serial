@@ -48,7 +48,17 @@ std::string patch_to_yaml_string(PatchData const &pd) {
 size_t patch_to_yaml_buffer(PatchData const &pd, std::span<char> &buffer) {
 	RymlInit::init_once();
 
-	ryml::Tree tree;
+	// Preallocate the node array and string arena: for a large patch (100KB+
+	// of mappings), letting them grow through repeated realloc+copy cycles
+	// dominates serialization time on the embedded target -- and the copy
+	// bursts trash the L2 cache shared with the audio cores.
+	size_t est_nodes = 64 + pd.module_slugs.size() + pd.int_cables.size() * 10 + pd.mapped_ins.size() * 10 +
+					   pd.mapped_outs.size() * 10 + pd.static_knobs.size() * 6 + pd.mapped_lights.size() * 6 +
+					   pd.module_states.size() * 4 + pd.midi_maps.set.size() * 10;
+	for (auto const &ks : pd.knob_sets)
+		est_nodes += ks.set.size() * 12 + 4;
+
+	ryml::Tree tree{est_nodes, buffer.size()};
 	create_tree(pd, tree);
 
 	ryml::substr s{buffer.data(), buffer.size()};
