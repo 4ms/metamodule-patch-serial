@@ -38,7 +38,11 @@ struct PatchData {
 	std::vector<MappedLight> mapped_lights;
 	std::vector<ModuleInitState> module_states;
 	MappedKnobSet midi_maps;
+	std::vector<uint16_t> bypassed_modules;
+	std::vector<ModuleAlias> module_aliases;
 	uint32_t midi_poly_num = 1;
+	// User-set max poly channels: 0 = Auto (compute from cables), 1-8 = hard-set midi_poly_num
+	uint16_t midi_poly_num_setting = 0;
 	PolyMode midi_poly_mode = PolyMode::Rotate;
 	float midi_pitchwheel_range = 1.f;
 
@@ -112,10 +116,21 @@ struct PatchData {
 	}
 
 	void update_midi_poly_num() {
+		// User hard-set the count: ignore cables
+		if (midi_poly_num_setting > 0) {
+			midi_poly_num = midi_poly_num_setting;
+			return;
+		}
+
 		uint32_t max_poly_used = 0;
 
 		for (auto const &map : mapped_ins) {
-			if (auto num = Midi::polychan(map.panel_jack_id)) {
+			if (Midi::is_midi_poly5_8_cable(map.panel_jack_id)) {
+				// 5-8 cable carries poly channels 5-8, so it needs the full polyphony allocated
+				max_poly_used = std::max<uint32_t>(max_poly_used, MaxMidiPolyphony);
+			} else if (Midi::is_midi_poly_cable(map.panel_jack_id)) {
+				max_poly_used = std::max<uint32_t>(max_poly_used, MaxMidiPolyChannels);
+			} else if (auto num = Midi::polychan(map.panel_jack_id)) {
 				max_poly_used = std::max<uint32_t>(max_poly_used, *num);
 			}
 		}
@@ -347,15 +362,7 @@ struct PatchData {
 	}
 
 	void add_mapped_outjack(uint16_t panel_jack_id, Jack jack) {
-		bool done = false;
-		for (auto &m : mapped_outs) {
-			if (m.panel_jack_id == panel_jack_id) {
-				m.out = jack;
-				done = true;
-			}
-		}
-		if (!done)
-			mapped_outs.push_back({panel_jack_id, jack});
+		mapped_outs.push_back({panel_jack_id, jack});
 	}
 
 	void set_panel_in_alias(uint16_t panel_jack_id, std::string_view alias) {
@@ -437,6 +444,45 @@ struct PatchData {
 		return module_id;
 	}
 
+	bool is_module_bypassed(uint16_t module_id) const {
+		return std::find(bypassed_modules.begin(), bypassed_modules.end(), module_id) != bypassed_modules.end();
+	}
+
+	void set_module_bypassed(uint16_t module_id, bool bypassed) {
+		auto it = std::find(bypassed_modules.begin(), bypassed_modules.end(), module_id);
+		if (bypassed) {
+			if (it == bypassed_modules.end())
+				bypassed_modules.push_back(module_id);
+		} else {
+			if (it != bypassed_modules.end())
+				bypassed_modules.erase(it);
+		}
+	}
+
+	std::string_view get_module_alias(uint16_t module_id) const {
+		for (auto const &a : module_aliases) {
+			if (a.module_id == module_id)
+				return a.alias_name.c_str();
+		}
+		return {};
+	}
+
+	void set_module_alias(uint16_t module_id, std::string_view alias) {
+		auto it = std::find_if(
+			module_aliases.begin(), module_aliases.end(), [=](auto const &a) { return a.module_id == module_id; });
+		if (it != module_aliases.end()) {
+			if (alias.empty())
+				module_aliases.erase(it);
+			else
+				it->alias_name.copy(alias);
+		} else if (!alias.empty()) {
+			ModuleAlias new_alias;
+			new_alias.module_id = module_id;
+			new_alias.alias_name.copy(alias);
+			module_aliases.push_back(new_alias);
+		}
+	}
+
 	void remove_module(unsigned module_id) {
 		if (module_id >= module_slugs.size())
 			return;
@@ -444,6 +490,8 @@ struct PatchData {
 		blank_out_module(module_id);
 
 		module_slugs.erase(std::next(module_slugs.begin(), module_id));
+
+		// Squash all module ids down:
 
 		std::transform(int_cables.begin(), int_cables.end(), int_cables.begin(), [=](InternalCable &cable) {
 			if (cable.out.module_id > module_id) {
@@ -505,10 +553,21 @@ struct PatchData {
 			}
 			return state;
 		});
+
+		for (auto &id : bypassed_modules) {
+			if (id > module_id)
+				id--;
+		}
+
+		for (auto &a : module_aliases) {
+			if (a.module_id > module_id)
+				a.module_id--;
+		}
 	}
 
+	// Removes all cables, mappings, etc for a module
+	// Except: keeps the slug in position
 	void blank_out_module(unsigned module_id) {
-		// use a blank placeholder, and when adding a module replace the first blank placeholder?
 		module_slugs[module_id] = "Blank";
 
 		std::erase_if(int_cables, [=](InternalCable &cable) {
@@ -534,6 +593,10 @@ struct PatchData {
 		std::erase_if(midi_maps.set, [=](MappedKnob &map) { return map.module_id == module_id; });
 
 		std::erase_if(module_states, [=](ModuleInitState &state) { return state.module_id == module_id; });
+
+		std::erase(bypassed_modules, static_cast<uint16_t>(module_id));
+
+		std::erase_if(module_aliases, [=](ModuleAlias const &a) { return a.module_id == module_id; });
 	}
 
 private:
@@ -566,7 +629,18 @@ private:
 	}
 
 	void update_midi_poly_num(uint16_t panel_jack_id) {
-		if (auto poly = Midi::polychan(panel_jack_id)) {
+		// User hard-set the count: ignore cables
+		if (midi_poly_num_setting > 0) {
+			midi_poly_num = midi_poly_num_setting;
+			return;
+		}
+
+		if (Midi::is_midi_poly5_8_cable(panel_jack_id)) {
+			// 5-8 cable carries poly channels 5-8, so it needs the full polyphony allocated
+			midi_poly_num = std::max<uint32_t>(MaxMidiPolyphony, midi_poly_num);
+		} else if (Midi::is_midi_poly_cable(panel_jack_id)) {
+			midi_poly_num = std::max<uint32_t>(MaxMidiPolyChannels, midi_poly_num);
+		} else if (auto poly = Midi::polychan(panel_jack_id)) {
 			midi_poly_num = std::max<uint32_t>(*poly, midi_poly_num);
 		}
 	}

@@ -292,6 +292,24 @@ bool read(ryml::ConstNodeRef const &n, ModuleInitState *m) {
 	return true;
 }
 
+void write(ryml::NodeRef *n, ModuleAlias const &a) {
+	*n |= ryml::MAP;
+	n->append_child() << ryml::key("module_id") << a.module_id;
+	if (a.alias_name.length())
+		n->append_child() << ryml::key("alias_name") << a.alias_name;
+}
+
+bool read(ryml::ConstNodeRef const &n, ModuleAlias *a) {
+	if (!n.is_map())
+		return false;
+	if (!n.has_child("module_id"))
+		return false;
+	n["module_id"] >> a->module_id;
+	if (n.has_child("alias_name") && n["alias_name"].val().size())
+		n["alias_name"] >> a->alias_name;
+	return true;
+}
+
 bool read(ryml::ConstNodeRef const &n, MappedLight *k) {
 	if (n.num_children() < 3)
 		return false;

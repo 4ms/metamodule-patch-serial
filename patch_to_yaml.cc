@@ -23,12 +23,15 @@ static ryml::Tree create_tree(PatchData const &pd, ryml::Tree &tree) {
 	data["mapped_knobs"] << pd.knob_sets;
 	data["midi_maps"] << pd.midi_maps;
 	data["midi_poly_num"] << pd.midi_poly_num;
+	data["midi_poly_num_setting"] << pd.midi_poly_num_setting;
 	data["midi_poly_mode"] << static_cast<unsigned>(pd.midi_poly_mode);
 	data["midi_pitchwheel_range"] << pd.midi_pitchwheel_range;
 	data["mapped_lights"] << pd.mapped_lights;
 	data["vcvModuleStates"] << pd.module_states;
 	data["suggested_samplerate"] << pd.suggested_samplerate;
 	data["suggested_blocksize"] << pd.suggested_blocksize;
+	data["bypassed_modules"] << pd.bypassed_modules;
+	data["module_aliases"] << pd.module_aliases;
 
 	return tree;
 }

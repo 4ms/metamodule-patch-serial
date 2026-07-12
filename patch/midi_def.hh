@@ -90,6 +90,20 @@ enum MidiMappings {
 	MidiRetrig7Jack,
 	MidiRetrig8Jack,
 
+	// poly chans 1-4:
+	MidiNotePolyJack = 0x150,
+	MidiGatePolyJack = 0x151,
+	MidiVelPolyJack = 0x152,
+	MidiAftPolyJack = 0x153,
+	MidiRetrigPolyJack = 0x154,
+
+	// poly chans 5-8:
+	MidiNotePoly5_8Jack = 0x155,
+	MidiGatePoly5_8Jack = 0x156,
+	MidiVelPoly5_8Jack = 0x157,
+	MidiAftPoly5_8Jack = 0x158,
+	MidiRetrigPoly5_8Jack = 0x159,
+
 	MidiCC0 = 0x200,
 	MidiCC1, // MidiModWheelJack,
 	//...
@@ -125,6 +139,7 @@ enum : uint8_t { Clock = 0, Start = 1, Stop = 2, Cont = 3, NumTimingEvents };
 enum { MidiModWheelJack = MidiCC1 };
 
 static constexpr unsigned MaxMidiPolyphony = 8;
+static constexpr unsigned MaxMidiPolyChannels = 4; // Matches CoreProcessor::MaxPolyChannels
 
 static constexpr size_t NumMidiNotes = 128;
 static constexpr size_t NumMidiCCs = 128;
@@ -141,6 +156,18 @@ template<unsigned MaxVolts>
 constexpr float u7_to_volts(uint8_t val) {
 	return (float)val / (127.f / (float)MaxVolts);
 }
+
+// Converts a CC value to volts. The M4 core sends all CC values as 14-bit: in 7-bit
+// mode it left-shifts the 7-bit value by 7 (so 127 => 127<<7 = 16256), and in 14-bit
+// mode it combines the MSB (CC 0-31) and LSB (CC 32-63) into a 0..16383 value. We scale
+// so 7-bit full-scale (16256) maps to MaxVolts exactly, preserving legacy behavior;
+// 14-bit full-scale (16383) therefore reaches very slightly above MaxVolts (~0.8%).
+template<unsigned MaxVolts>
+constexpr float u14cc_to_volts(int16_t val) {
+	return (float)val * (float)MaxVolts / (127.f * 128.f);
+}
+static_assert(u14cc_to_volts<10>(127 << 7) == 10.f);
+static_assert(u14cc_to_volts<10>(0) == 0.f);
 
 template<unsigned NumSemitones>
 constexpr float s14_to_semitones(int16_t val) {
@@ -176,10 +203,24 @@ constexpr MidiMappings set_midi_channel(uint32_t panel_jack_id, uint32_t midi_ch
 		return MidiMappings(strip_midi_channel(panel_jack_id));
 }
 
+constexpr bool is_midi_poly_cable(uint32_t id) {
+	id = strip_midi_channel(id);
+	return id >= MidiNotePolyJack && id <= MidiRetrigPoly5_8Jack;
+}
+
+// True only for the poly channels 5-8 cable (as opposed to the 1-4 cable)
+constexpr bool is_midi_poly5_8_cable(uint32_t id) {
+	id = strip_midi_channel(id);
+	return id >= MidiNotePoly5_8Jack && id <= MidiRetrigPoly5_8Jack;
+}
+
+// Poly channel offset carried by a poly cable: 0 for the 1-4 cable, 4 for the 5-8 cable
+static constexpr uint8_t MidiPolyCableChanBase = MaxMidiPolyChannels;
+
 // Returns 1-8 for the poly chan of a MidiMapping
 constexpr std::optional<uint8_t> polychan(unsigned mapping) {
 	mapping = strip_midi_channel(mapping);
-	if (mapping >= MidiMonoNoteJack && mapping < MidiCC0) {
+	if (mapping >= MidiMonoNoteJack && mapping < MidiNotePolyJack) {
 		return std::min<uint8_t>(mapping & 0x0F, 7) + 1;
 	}
 	return std::nullopt;
@@ -192,6 +233,20 @@ static_assert(polychan(MidiRetrig2Jack).value() == 2);
 static_assert(polychan(MidiRetrig8Jack).value() == 8);
 static_assert(polychan(MidiMonoNoteJack + /*no omni:*/ (1 << 11) + /*channel 7*/ (6 << 12)).value() == 1);
 static_assert(polychan(MidiNote2Jack + /*no omni:*/ (1 << 11) + /*channel 16*/ (0xF << 12)).value() == 2);
+static_assert(!polychan(MidiNotePolyJack).has_value());
+static_assert(!polychan(MidiRetrigPolyJack).has_value());
+static_assert(!polychan(MidiNotePoly5_8Jack).has_value());
+static_assert(!polychan(MidiRetrigPoly5_8Jack).has_value());
+static_assert(is_midi_poly_cable(MidiNotePolyJack));
+static_assert(is_midi_poly_cable(MidiRetrigPolyJack));
+static_assert(is_midi_poly_cable(MidiNotePoly5_8Jack));
+static_assert(is_midi_poly_cable(MidiRetrigPoly5_8Jack));
+static_assert(!is_midi_poly_cable(MidiMonoNoteJack));
+static_assert(!is_midi_poly_cable(MidiCC0));
+static_assert(is_midi_poly5_8_cable(MidiNotePoly5_8Jack));
+static_assert(is_midi_poly5_8_cable(MidiRetrigPoly5_8Jack));
+static_assert(!is_midi_poly5_8_cable(MidiNotePolyJack));
+static_assert(!is_midi_poly5_8_cable(MidiRetrigPolyJack));
 
 constexpr std::optional<uint32_t> midi_note_pitch(uint32_t panel_jack_id) {
 	panel_jack_id = strip_midi_channel(panel_jack_id);
@@ -216,6 +271,62 @@ constexpr std::optional<uint32_t> midi_note_aft(uint32_t panel_jack_id) {
 constexpr std::optional<uint32_t> midi_note_retrig(uint32_t panel_jack_id) {
 	panel_jack_id = strip_midi_channel(panel_jack_id);
 	return MathTools::between<uint32_t>(panel_jack_id, MidiMonoRetrigJack, MidiRetrig8Jack);
+}
+
+constexpr bool midi_note_pitch_poly(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
+	return panel_jack_id == MidiNotePolyJack;
+}
+
+constexpr bool midi_note_gate_poly(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
+	return panel_jack_id == MidiGatePolyJack;
+}
+
+constexpr bool midi_note_vel_poly(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
+	return panel_jack_id == MidiVelPolyJack;
+}
+
+constexpr bool midi_note_aft_poly(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
+	return panel_jack_id == MidiAftPolyJack;
+}
+
+constexpr bool midi_note_retrig_poly(uint32_t panel_jack_id) {
+	panel_jack_id = strip_midi_channel(panel_jack_id);
+	return panel_jack_id == MidiRetrigPolyJack;
+}
+
+constexpr bool midi_note_pitch_poly5_8(uint32_t panel_jack_id) {
+	return strip_midi_channel(panel_jack_id) == MidiNotePoly5_8Jack;
+}
+
+constexpr bool midi_note_gate_poly5_8(uint32_t panel_jack_id) {
+	return strip_midi_channel(panel_jack_id) == MidiGatePoly5_8Jack;
+}
+
+constexpr bool midi_note_vel_poly5_8(uint32_t panel_jack_id) {
+	return strip_midi_channel(panel_jack_id) == MidiVelPoly5_8Jack;
+}
+
+constexpr bool midi_note_aft_poly5_8(uint32_t panel_jack_id) {
+	return strip_midi_channel(panel_jack_id) == MidiAftPoly5_8Jack;
+}
+
+constexpr bool midi_note_retrig_poly5_8(uint32_t panel_jack_id) {
+	return strip_midi_channel(panel_jack_id) == MidiRetrigPoly5_8Jack;
+}
+
+// Returns the event index (0=Note, 1=Gate, 2=Vel, 3=Aft, 4=Retrig) for either poly
+// cable (1-4 or 5-8), or nullopt if the id is not a poly cable.
+constexpr std::optional<uint8_t> midi_poly_cable_event(uint32_t panel_jack_id) {
+	auto id = strip_midi_channel(panel_jack_id);
+	if (id >= MidiNotePolyJack && id <= MidiRetrigPolyJack)
+		return uint8_t(id - MidiNotePolyJack);
+	if (id >= MidiNotePoly5_8Jack && id <= MidiRetrigPoly5_8Jack)
+		return uint8_t(id - MidiNotePoly5_8Jack);
+	return std::nullopt;
 }
 
 constexpr std::optional<uint32_t> midi_gate(uint32_t panel_jack_id) {
