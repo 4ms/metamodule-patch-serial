@@ -70,7 +70,12 @@ void write(ryml::NodeRef *n, std::vector<BrandModuleSlug> const &slugs) {
 		auto idx_s = std::to_string(i);
 		ryml::csubstr idx(idx_s.c_str(), idx_s.length());
 		ryml::csubstr slug(x.c_str(), x.length());
-		n->append_child() << ryml::key(idx) << slug;
+		auto child = n->append_child();
+		child << ryml::key(idx) << slug;
+		// Quote 'Brand:Module' slugs: valid yaml either way, but older firmware
+		// versions can only parse the quoted form
+		if (std::string_view{x}.find(':') != std::string_view::npos)
+			child |= ryml::VAL_SQUO;
 		i++;
 	}
 }
@@ -81,7 +86,12 @@ void write(ryml::NodeRef *n, std::vector<ModuleTypeSlug> const &slugs) {
 		auto idx_s = std::to_string(i);
 		ryml::csubstr idx(idx_s.c_str(), idx_s.length());
 		ryml::csubstr slug(x.c_str(), x.length());
-		n->append_child() << ryml::key(idx) << slug;
+		auto child = n->append_child();
+		child << ryml::key(idx) << slug;
+		// Quote 'Brand:Module' slugs: valid yaml either way, but older firmware
+		// versions can only parse the quoted form
+		if (std::string_view{x}.find(':') != std::string_view::npos)
+			child |= ryml::VAL_SQUO;
 		i++;
 	}
 }
@@ -91,7 +101,7 @@ void write(ryml::NodeRef *n, ModuleInitState const &state) {
 	n->append_child() << ryml::key("module_id") << state.module_id;
 
 	auto data_node = n->append_child();
-	data_node |= ryml::_WIP_VAL_LITERAL;
+	data_node |= ryml::VAL_LITERAL;
 
 	data_node << ryml::key("data") << state.state_data;
 }
