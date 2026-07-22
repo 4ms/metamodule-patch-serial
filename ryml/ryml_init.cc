@@ -1,6 +1,8 @@
 #include "ryml.hpp"
 #include <cstdio>
+#ifdef __cpp_exceptions
 #include <stdexcept>
+#endif
 
 namespace RymlInit
 {
@@ -14,6 +16,9 @@ namespace RymlInit
 // ryml >= 0.6 requires error callbacks to not return: throw and let the
 // parse/emit entry points (yaml_raw_to_patch etc.) catch and report failure.
 [[noreturn]] static void throw_error() {
+#ifdef __cpp_exceptions
+	throw std::runtime_error("ryml error");
+#endif
 }
 
 void init_once() {
@@ -32,11 +37,8 @@ void init_once() {
 			throw_error();
 		};
 		callbacks.m_error_parse = [](c4::csubstr msg, c4::yml::ErrorDataParse const &errdata, void *) {
-			ryml_printf("[ryml] parse error: %.*s (%zu:%zu)\n",
-						(int)msg.len,
-						msg.str,
-						errdata.ymlloc.line,
-						errdata.ymlloc.col);
+			ryml_printf(
+				"[ryml] parse error: %.*s (%zu:%zu)\n", (int)msg.len, msg.str, errdata.ymlloc.line, errdata.ymlloc.col);
 			throw_error();
 		};
 		callbacks.m_error_visit = [](c4::csubstr msg, c4::yml::ErrorDataVisit const &, void *) {

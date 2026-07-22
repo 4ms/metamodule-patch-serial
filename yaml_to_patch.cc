@@ -5,7 +5,11 @@
 namespace MetaModule
 {
 
-bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
+bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd)
+#ifdef __cpp_exceptions
+	try
+#endif
+{
 	RymlInit::init_once();
 
 	ryml::Tree tree = ryml::parse_in_place(ryml::substr(yaml, size));
@@ -81,6 +85,12 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 		patchdata["module_aliases"] >> pd.module_aliases;
 
 	return true;
+
+#ifdef __cpp_exceptions
+} catch (std::exception const &) {
+	// ryml reports parse errors by callback, which throws (see ryml_init.cc)
+	return false;
+#endif
 }
 
 bool yaml_raw_to_patch(std::span<char> yaml, PatchData &pd) {

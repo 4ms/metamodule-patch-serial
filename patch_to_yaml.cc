@@ -36,7 +36,11 @@ static ryml::Tree create_tree(PatchData const &pd, ryml::Tree &tree) {
 	return tree;
 }
 
-std::string patch_to_yaml_string(PatchData const &pd) {
+std::string patch_to_yaml_string(PatchData const &pd)
+#ifdef __cpp_exceptions
+	try
+#endif
+{
 	RymlInit::init_once();
 
 	ryml::Tree tree;
@@ -44,8 +48,19 @@ std::string patch_to_yaml_string(PatchData const &pd) {
 
 	return ryml::emitrs_yaml<std::string>(tree);
 }
+#ifdef __cpp_exceptions
+catch (std::exception const &)
+{
+	// ryml reports errors by callback, which throws (see ryml_init.cc)
+	return "";
+}
+#endif
 
-size_t patch_to_yaml_buffer(PatchData const &pd, std::span<char> &buffer) {
+size_t patch_to_yaml_buffer(PatchData const &pd, std::span<char> &buffer)
+#ifdef __cpp_exceptions
+	try
+#endif
+{
 	RymlInit::init_once();
 
 	ryml::Tree tree;
@@ -58,8 +73,19 @@ size_t patch_to_yaml_buffer(PatchData const &pd, std::span<char> &buffer) {
 	buffer = buffer.subspan(0, res.size());
 	return res.size();
 }
+#ifdef __cpp_exceptions
+catch (std::exception const &)
+{
+	buffer = buffer.subspan(0, 0);
+	return 0;
+}
+#endif
 
-std::string json_to_yml(std::string json) {
+std::string json_to_yml(std::string json)
+#ifdef __cpp_exceptions
+	try
+#endif
+{
 	if (json.back() == '\0')
 		json.pop_back();
 
@@ -67,5 +93,11 @@ std::string json_to_yml(std::string json) {
 
 	return ryml::emitrs_yaml<std::string>(tree);
 }
+#ifdef __cpp_exceptions
+catch (std::exception const &)
+{
+	return "";
+}
+#endif
 
 } // namespace MetaModule
