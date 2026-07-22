@@ -9,9 +9,9 @@ R"(
 PatchData:
   patch_name: 'Test Patch 99'
   description: "This is a patch
-  without a newline
+   without a newline
 
-  and then with"
+   and then with"
   module_slugs:
     0: PanelMedium
     1: Module1
