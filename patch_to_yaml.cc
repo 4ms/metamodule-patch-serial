@@ -32,6 +32,8 @@ static ryml::Tree create_tree(PatchData const &pd, ryml::Tree &tree) {
 	data["suggested_blocksize"] << pd.suggested_blocksize;
 	data["bypassed_modules"] << pd.bypassed_modules;
 	data["module_aliases"] << pd.module_aliases;
+	if (pd.expanders.size())
+		data["expanders"] << pd.expanders;
 
 	if (pd.module_cores.size() > 0) {
 		data["module_cores"] << pd.module_cores;
