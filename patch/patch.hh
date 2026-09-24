@@ -31,7 +31,7 @@ struct MappedKnob {
 	uint16_t module_id;
 	uint16_t param_id;
 
-	enum CurveType : uint8_t { Normal, Toggle };
+	enum CurveType : uint8_t { Normal, Toggle, Cycle };
 	uint8_t curve_type;
 
 	uint8_t midi_chan : 5;		//0: ignore, 1-16: only MIDI channel 1-16
