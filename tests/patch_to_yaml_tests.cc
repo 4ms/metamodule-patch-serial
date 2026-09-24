@@ -437,3 +437,66 @@ TEST_CASE("load balance with an out-of-range core is not used") {
 	pd.module_loads = {0, 100, 200};
 	CHECK(pd.has_load_balance(2) == false);
 }
+
+TEST_CASE("module_positions round-trip") {
+	MetaModule::PatchData pd{
+		.module_slugs{"HubMedium", "VCF", "VCO"},
+	};
+	pd.patch_name = "positions_test";
+	pd.module_positions.push_back({.module_id = 0, .x = 0, .y = 0});
+	pd.module_positions.push_back({.module_id = 1, .x = 12, .y = 0});
+	pd.module_positions.push_back({.module_id = 2, .x = 4, .y = 1});
+
+	auto yaml = patch_to_yaml_string(pd);
+	CHECK(yaml.find(R"(  module_positions:
+    - module_id: 0
+      x: 0
+      y: 0
+    - module_id: 1
+      x: 12
+      y: 0
+    - module_id: 2
+      x: 4
+      y: 1
+)") != std::string::npos);
+
+	MetaModule::PatchData pd2;
+	CHECK(yaml_string_to_patch(yaml, pd2));
+	REQUIRE(pd2.module_positions.size() == 3);
+	CHECK(pd2.module_positions[1].module_id == 1);
+	CHECK(pd2.module_positions[1].x == 12);
+	CHECK(pd2.module_positions[1].y == 0);
+	CHECK(pd2.module_positions[2].module_id == 2);
+	CHECK(pd2.module_positions[2].x == 4);
+	CHECK(pd2.module_positions[2].y == 1);
+}
+
+TEST_CASE("module_positions not written when empty") {
+	MetaModule::PatchData pd{
+		.module_slugs{"HubMedium", "VCF"},
+	};
+	pd.patch_name = "no_positions";
+	auto yaml = patch_to_yaml_string(pd);
+	CHECK(yaml.find("module_positions") == std::string::npos);
+
+	MetaModule::PatchData pd2;
+	CHECK(yaml_string_to_patch(yaml, pd2));
+	CHECK(pd2.module_positions.empty());
+}
+
+TEST_CASE("remove_module removes and re-indexes module_positions") {
+	MetaModule::PatchData pd{
+		.module_slugs{"HubMedium", "VCF", "VCO", "LFO"},
+	};
+	pd.module_positions = {{0, 0, 0}, {1, 12, 0}, {2, 0, 1}, {3, 8, 1}};
+
+	pd.remove_module(2);
+
+	REQUIRE(pd.module_positions.size() == 3);
+	CHECK(pd.module_positions[0].module_id == 0);
+	CHECK(pd.module_positions[1].module_id == 1);
+	CHECK(pd.module_positions[1].x == 12);
+	CHECK(pd.module_positions[2].module_id == 2);
+	CHECK(pd.module_positions[2].x == 8);
+	CHECK(pd.module_positions[2].y == 1);
+}

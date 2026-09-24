@@ -25,6 +25,7 @@ struct PatchData {
 	std::vector<uint16_t> bypassed_modules;
 	std::vector<ModuleAlias> module_aliases;
 	std::vector<ExpanderConnection> expanders;
+	std::vector<ModulePosition> module_positions;
 
 	std::vector<uint16_t> module_cores;
 	std::vector<uint32_t> module_loads; //units in ppm of one core
@@ -542,6 +543,12 @@ struct PatchData {
 				exp.left_module_id--;
 			if (exp.right_module_id > module_id)
 				exp.right_module_id--;
+		}
+
+		std::erase_if(module_positions, [=](ModulePosition const &pos) { return pos.module_id == module_id; });
+		for (auto &pos : module_positions) {
+			if (pos.module_id > module_id)
+				pos.module_id--;
 		}
 	}
 

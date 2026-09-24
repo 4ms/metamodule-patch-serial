@@ -83,6 +83,9 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	if (patchdata.has_child("expanders"))
 		patchdata["expanders"] >> pd.expanders;
 
+	if (patchdata.has_child("module_positions"))
+		patchdata["module_positions"] >> pd.module_positions;
+
 	if (patchdata.has_child("module_cores") && patchdata.has_child("module_loads")) {
 		patchdata["module_cores"] >> pd.module_cores;
 		patchdata["module_loads"] >> pd.module_loads;

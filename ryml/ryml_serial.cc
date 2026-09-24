@@ -333,6 +333,24 @@ bool read(ryml::ConstNodeRef const &n, ExpanderConnection *exp) {
 	return true;
 }
 
+void write(ryml::NodeRef *n, ModulePosition const &pos) {
+	*n |= ryml::MAP;
+	n->append_child() << ryml::key("module_id") << pos.module_id;
+	n->append_child() << ryml::key("x") << pos.x;
+	n->append_child() << ryml::key("y") << pos.y;
+}
+
+bool read(ryml::ConstNodeRef const &n, ModulePosition *pos) {
+	if (!n.is_map())
+		return false;
+	if (!n.has_child("module_id") || !n.has_child("x") || !n.has_child("y"))
+		return false;
+	n["module_id"] >> pos->module_id;
+	n["x"] >> pos->x;
+	n["y"] >> pos->y;
+	return true;
+}
+
 bool read(ryml::ConstNodeRef const &n, MappedLight *k) {
 	if (n.num_children() < 3)
 		return false;

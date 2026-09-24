@@ -20,6 +20,7 @@ void write(ryml::NodeRef *n, ModuleInitState const &state);
 void write(ryml::NodeRef *n, MappedLight const &map);
 void write(ryml::NodeRef *n, ModuleAlias const &a);
 void write(ryml::NodeRef *n, ExpanderConnection const &exp);
+void write(ryml::NodeRef *n, ModulePosition const &pos);
 
 bool read(ryml::ConstNodeRef const &n, Jack *jack);
 bool read(ryml::ConstNodeRef const &n, InternalCable *cable);
@@ -32,3 +33,4 @@ bool read(ryml::ConstNodeRef const &n, ModuleInitState *m);
 bool read(ryml::ConstNodeRef const &n, MappedLight *m);
 bool read(ryml::ConstNodeRef const &n, ModuleAlias *a);
 bool read(ryml::ConstNodeRef const &n, ExpanderConnection *exp);
+bool read(ryml::ConstNodeRef const &n, ModulePosition *pos);
