@@ -72,7 +72,10 @@ std::string json_to_yml(std::string json) {
 	if (json.back() == '\0')
 		json.pop_back();
 
-	ryml::Tree tree = ryml::parse_in_place(ryml::to_substr(json));
+	RymlInit::init_once();
+	ryml::Tree tree;
+	if (!RymlInit::parse_in_place(ryml::to_substr(json), &tree))
+		return {};
 
 	return ryml::emitrs_yaml<std::string>(tree);
 }

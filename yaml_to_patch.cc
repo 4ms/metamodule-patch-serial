@@ -8,7 +8,9 @@ namespace MetaModule
 bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	RymlInit::init_once();
 
-	ryml::Tree tree = ryml::parse_in_place(ryml::substr(yaml, size));
+	ryml::Tree tree;
+	if (!RymlInit::parse_in_place(ryml::substr(yaml, size), &tree))
+		return false;
 
 	if (tree.num_children(0) == 0)
 		return false;
