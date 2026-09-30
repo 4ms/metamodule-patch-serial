@@ -585,9 +585,7 @@ struct PatchData {
 
 		std::erase_if(module_aliases, [=](ModuleAlias const &a) { return a.module_id == module_id; });
 
-		std::erase_if(expanders, [=](ExpanderConnection const &exp) {
-			return exp.left_module_id == module_id || exp.right_module_id == module_id;
-		});
+		remove_expanders(module_id);
 
 		// The module's measured load no longer applies
 		clear_load_balance();
@@ -659,6 +657,13 @@ struct PatchData {
 	bool has_expander(ExpanderConnection conn) const {
 		return std::ranges::any_of(expanders, [=](ExpanderConnection const &exp) {
 			return exp.left_module_id == conn.left_module_id && exp.right_module_id == conn.right_module_id;
+		});
+	}
+
+	// Removes all expander connections to or from this module
+	void remove_expanders(uint16_t module_id) {
+		std::erase_if(expanders, [=](ExpanderConnection const &exp) {
+			return exp.left_module_id == module_id || exp.right_module_id == module_id;
 		});
 	}
 

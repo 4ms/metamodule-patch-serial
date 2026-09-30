@@ -108,3 +108,21 @@ TEST_CASE("remove_module removes and re-indexes expander connections") {
 	CHECK(pd.expanders[0].left_module_id == 1);
 	CHECK(pd.expanders[0].right_module_id == 2);
 }
+
+TEST_CASE("remove_expanders removes a module's connections on both sides, and keeps the others") {
+	MetaModule::PatchData pd{
+		.module_slugs{"HubMedium", "A", "B", "C", "D"},
+	};
+	pd.expanders.push_back({.left_module_id = 1, .right_module_id = 2});
+	pd.expanders.push_back({.left_module_id = 2, .right_module_id = 3});
+	pd.expanders.push_back({.left_module_id = 3, .right_module_id = 4});
+
+	pd.remove_expanders(2);
+
+	REQUIRE(pd.expanders.size() == 1);
+	CHECK(pd.expanders[0].left_module_id == 3);
+	CHECK(pd.expanders[0].right_module_id == 4);
+
+	// Module ids and slugs are not changed
+	CHECK(pd.module_slugs.size() == 5);
+}
