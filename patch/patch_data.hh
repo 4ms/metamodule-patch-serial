@@ -275,6 +275,42 @@ struct PatchData {
 		std::erase_if(mapped_outs, [jack](auto map) { return (map.out == jack); });
 	}
 
+	// Removes one input from the internal cable driven by `out`, leaving the cable's other inputs connected
+	bool remove_internal_cable(Jack out, Jack in) {
+		auto *cable = _find_internal_cable_with_outjack(out);
+		if (!cable)
+			return false;
+
+		auto num_erased = std::erase(cable->ins, in);
+
+		// Remove any cables that now have no inputs
+		std::erase_if(int_cables, [](auto const &cable) { return (cable.ins.size() == 0); });
+
+		return num_erased > 0;
+	}
+
+	// Removes one panel (or MIDI) input mapping to `jack`, leaving its other mappings in place
+	bool remove_mapped_injack(uint32_t panel_jack_id, Jack jack) {
+		size_t num_erased = 0;
+		for (auto &map : mapped_ins) {
+			if (map.panel_jack_id == panel_jack_id)
+				num_erased += std::erase(map.ins, jack);
+		}
+		// Remove any panel mappings that now have no inputs
+		std::erase_if(mapped_ins, [](auto const &map) { return (map.ins.size() == 0); });
+
+		update_midi_poly_num();
+
+		return num_erased > 0;
+	}
+
+	// Removes one panel output mapping from `jack`, leaving its other mappings in place
+	bool remove_mapped_outjack(uint32_t panel_jack_id, Jack jack) {
+		auto num_erased = std::erase_if(
+			mapped_outs, [=](auto const &map) { return (map.panel_jack_id == panel_jack_id && map.out == jack); });
+		return num_erased > 0;
+	}
+
 	const MappedInputJack *find_mapped_midi_injack(Jack jack) const {
 		for (auto &m : mapped_ins) {
 			if (!Midi::is_midi_panel_id(m.panel_jack_id))
