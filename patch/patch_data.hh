@@ -200,7 +200,7 @@ struct PatchData {
 		MappedKnobSet &set = (set_id == MIDIKnobSet) ? midi_maps : knob_sets[set_id];
 
 		auto num_erased = std::erase_if(
-			set.set, [&map](auto m) { return (m.module_id == map.module_id && m.param_id == map.param_id); });
+			set.set, [&map](auto const &m) { return (m.module_id == map.module_id && m.param_id == map.param_id); });
 
 		return num_erased > 0;
 	}
@@ -247,14 +247,14 @@ struct PatchData {
 			std::erase(cable.ins, jack);
 		}
 		// Remove any cables that now have no inputs
-		std::erase_if(int_cables, [](auto cable) { return (cable.ins.size() == 0); });
+		std::erase_if(int_cables, [](auto const &cable) { return (cable.ins.size() == 0); });
 
 		remove_injack_mappings(jack);
 	}
 
 	void disconnect_outjack(Jack jack) {
 		// Remove any cables with this output
-		std::erase_if(int_cables, [jack](auto cable) { return (cable.out == jack); });
+		std::erase_if(int_cables, [jack](auto const &cable) { return (cable.out == jack); });
 
 		remove_outjack_mappings(jack);
 	}
@@ -265,14 +265,14 @@ struct PatchData {
 			std::erase(map.ins, jack);
 		}
 		// Remove any panel mappings that now have no inputs
-		std::erase_if(mapped_ins, [](auto map) { return (map.ins.size() == 0); });
+		std::erase_if(mapped_ins, [](auto const &map) { return (map.ins.size() == 0); });
 
 		update_midi_poly_num();
 	}
 
 	void remove_outjack_mappings(Jack jack) {
 		// Remove any panel mappings with this output
-		std::erase_if(mapped_outs, [jack](auto map) { return (map.out == jack); });
+		std::erase_if(mapped_outs, [jack](auto const &map) { return (map.out == jack); });
 	}
 
 	// Removes one input from the internal cable driven by `out`, leaving the cable's other inputs connected
@@ -419,7 +419,7 @@ struct PatchData {
 			return;
 		}
 		std::erase_if(knob_sets,
-					  [this](auto &knobset) { return knobset.set.size() == 0 && &knobset != &knob_sets[0]; });
+					  [this](auto const &knobset) { return knobset.set.size() == 0 && &knobset != &knob_sets[0]; });
 	}
 
 	const char *valid_knob_set_name(unsigned set_i) const {
@@ -597,25 +597,25 @@ struct PatchData {
 			if (cable.out.module_id == module_id) {
 				return true;
 			} else {
-				std::erase_if(cable.ins, [=](Jack in) { return in.module_id == module_id; });
+				std::erase_if(cable.ins, [=](Jack const &in) { return in.module_id == module_id; });
 				return (cable.ins.size() == 0);
 			}
 		});
 
 		for (MappedInputJack &map : mapped_ins) {
-			std::erase_if(map.ins, [=](Jack in) { return in.module_id == module_id; });
+			std::erase_if(map.ins, [=](Jack const &in) { return in.module_id == module_id; });
 		}
-		std::erase_if(mapped_ins, [=](MappedInputJack map) { return map.ins.size() == 0; });
-		std::erase_if(mapped_outs, [=](MappedOutputJack map) { return map.out.module_id == module_id; });
+		std::erase_if(mapped_ins, [=](MappedInputJack const &map) { return map.ins.size() == 0; });
+		std::erase_if(mapped_outs, [=](MappedOutputJack const &map) { return map.out.module_id == module_id; });
 
-		std::erase_if(static_knobs, [=](StaticParam &knob) { return knob.module_id == module_id; });
+		std::erase_if(static_knobs, [=](StaticParam const &knob) { return knob.module_id == module_id; });
 
 		for (auto &knobset : knob_sets) {
-			std::erase_if(knobset.set, [=](MappedKnob &map) { return map.module_id == module_id; });
+			std::erase_if(knobset.set, [=](MappedKnob const &map) { return map.module_id == module_id; });
 		}
-		std::erase_if(midi_maps.set, [=](MappedKnob &map) { return map.module_id == module_id; });
+		std::erase_if(midi_maps.set, [=](MappedKnob const &map) { return map.module_id == module_id; });
 
-		std::erase_if(module_states, [=](ModuleInitState &state) { return state.module_id == module_id; });
+		std::erase_if(module_states, [=](ModuleInitState const &state) { return state.module_id == module_id; });
 
 		std::erase(bypassed_modules, static_cast<uint16_t>(module_id));
 
