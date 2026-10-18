@@ -26,6 +26,7 @@ struct PatchData {
 	std::vector<ModuleAlias> module_aliases;
 	std::vector<ExpanderConnection> expanders;
 	std::vector<ModulePosition> module_positions;
+	std::vector<ScreensaverDisplay> screensaver_displays;
 
 	std::vector<uint16_t> module_cores;
 	std::vector<uint32_t> module_loads; //units in ppm of one core
@@ -586,6 +587,11 @@ struct PatchData {
 			if (pos.module_id > module_id)
 				pos.module_id--;
 		}
+
+		for (auto &ss : screensaver_displays) {
+			if (ss.module_id > module_id)
+				ss.module_id--;
+		}
 	}
 
 	// Removes all cables, mappings, etc for a module
@@ -623,8 +629,40 @@ struct PatchData {
 
 		remove_expanders(module_id);
 
+		remove_screensaver_displays(module_id);
+
 		// The module's measured load no longer applies
 		clear_load_balance();
+	}
+
+	//
+	// Screensaver display
+	//
+
+	// Only one screensaver display is supported for now: setting one replaces any other
+	void set_screensaver_display(uint16_t module_id, uint16_t light_id) {
+		screensaver_displays.clear();
+		screensaver_displays.push_back({.module_id = module_id, .light_id = light_id});
+	}
+
+	void clear_screensaver_display() {
+		screensaver_displays.clear();
+	}
+
+	bool is_screensaver_display(uint16_t module_id, uint16_t light_id) const {
+		return std::ranges::any_of(screensaver_displays, [=](ScreensaverDisplay const &ss) {
+			return ss.module_id == module_id && ss.light_id == light_id;
+		});
+	}
+
+	std::optional<ScreensaverDisplay> find_screensaver_display() const {
+		if (screensaver_displays.empty())
+			return std::nullopt;
+		return screensaver_displays.front();
+	}
+
+	void remove_screensaver_displays(uint16_t module_id) {
+		std::erase_if(screensaver_displays, [=](ScreensaverDisplay const &ss) { return ss.module_id == module_id; });
 	}
 
 	//

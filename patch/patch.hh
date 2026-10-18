@@ -140,6 +140,12 @@ struct ModulePosition {
 	int16_t y{};
 };
 
+// A module's graphic display (identified by its light index) shown as the screensaver
+struct ScreensaverDisplay {
+	uint16_t module_id{};
+	uint16_t light_id{};
+};
+
 struct MappedLight {
 	uint32_t panel_light_id{};
 	uint16_t module_id{};

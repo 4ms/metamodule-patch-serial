@@ -351,6 +351,22 @@ bool read(ryml::ConstNodeRef const &n, ModulePosition *pos) {
 	return true;
 }
 
+void write(ryml::NodeRef *n, ScreensaverDisplay const &ss) {
+	*n |= ryml::MAP;
+	n->append_child() << ryml::key("module_id") << ss.module_id;
+	n->append_child() << ryml::key("light_id") << ss.light_id;
+}
+
+bool read(ryml::ConstNodeRef const &n, ScreensaverDisplay *ss) {
+	if (!n.is_map())
+		return false;
+	if (!n.has_child("module_id") || !n.has_child("light_id"))
+		return false;
+	n["module_id"] >> ss->module_id;
+	n["light_id"] >> ss->light_id;
+	return true;
+}
+
 bool read(ryml::ConstNodeRef const &n, MappedLight *k) {
 	if (n.num_children() < 3)
 		return false;

@@ -36,6 +36,8 @@ static ryml::Tree create_tree(PatchData const &pd, ryml::Tree &tree) {
 		data["expanders"] << pd.expanders;
 	if (pd.module_positions.size())
 		data["module_positions"] << pd.module_positions;
+	if (pd.screensaver_displays.size())
+		data["screensaver_displays"] << pd.screensaver_displays;
 
 	if (pd.module_cores.size() > 0) {
 		data["module_cores"] << pd.module_cores;
