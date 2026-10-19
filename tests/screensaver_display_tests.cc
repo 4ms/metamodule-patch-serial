@@ -97,3 +97,52 @@ TEST_CASE("blank_out_module erases its screensaver display") {
 	pd.blank_out_module(1);
 	CHECK(pd.screensaver_displays.empty());
 }
+
+TEST_CASE("screensaver display by position round-trip") {
+	MetaModule::PatchData pd{
+		.module_slugs{"HubMedium", "A", "B"},
+	};
+	pd.patch_name = "screensaver_pos_test";
+	pd.set_screensaver_display_at(2, 12.5f, 30.25f);
+
+	auto yaml = patch_to_yaml_string(pd);
+	CHECK(yaml.find("x_mm:") != std::string::npos);
+	CHECK(yaml.find("light_id") == std::string::npos);
+
+	MetaModule::PatchData pd2;
+	CHECK(yaml_string_to_patch(yaml, pd2));
+	REQUIRE(pd2.screensaver_displays.size() == 1);
+	CHECK(pd2.screensaver_displays[0].module_id == 2);
+	REQUIRE(pd2.screensaver_displays[0].position_mm.has_value());
+	CHECK(pd2.screensaver_displays[0].position_mm->first == doctest::Approx(12.5f));
+	CHECK(pd2.screensaver_displays[0].position_mm->second == doctest::Approx(30.25f));
+}
+
+TEST_CASE("screensaver display by position doesn't match a light id") {
+	MetaModule::PatchData pd{
+		.module_slugs{"HubMedium", "A"},
+	};
+	pd.set_screensaver_display_at(1, 0.f, 0.f);
+	CHECK_FALSE(pd.is_screensaver_display(1, 0));
+
+	// Setting by light id clears the position
+	pd.set_screensaver_display(1, 3);
+	REQUIRE(pd.screensaver_displays.size() == 1);
+	CHECK_FALSE(pd.screensaver_displays[0].position_mm.has_value());
+	CHECK(pd.is_screensaver_display(1, 3));
+}
+
+TEST_CASE("screensaver display entry needs a light_id or a position") {
+	std::string yaml = R"(PatchData:
+  patch_name: bad_entry
+  module_slugs:
+    0: HubMedium
+    1: VCF
+  screensaver_displays:
+    - module_id: 1
+)";
+
+	MetaModule::PatchData pd;
+	yaml_string_to_patch(yaml, pd);
+	CHECK(pd.screensaver_displays.empty());
+}

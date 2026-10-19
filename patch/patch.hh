@@ -140,10 +140,13 @@ struct ModulePosition {
 	int16_t y{};
 };
 
-// A module's graphic display (identified by its light index) shown as the screensaver
+// A module's graphic display shown as the screensaver.
+// It's identified by its light index, or, in patches made in VCV Rack, by the position
+// of its top-left corner (VCV can't know the light index of a ported module's display).
 struct ScreensaverDisplay {
 	uint16_t module_id{};
 	uint16_t light_id{};
+	std::optional<std::pair<float, float>> position_mm{};
 };
 
 struct MappedLight {

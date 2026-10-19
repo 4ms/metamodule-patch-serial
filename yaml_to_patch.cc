@@ -88,8 +88,15 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	if (patchdata.has_child("module_positions"))
 		patchdata["module_positions"] >> pd.module_positions;
 
-	if (patchdata.has_child("screensaver_displays"))
-		patchdata["screensaver_displays"] >> pd.screensaver_displays;
+	// Skip invalid entries, rather than keeping a default one
+	if (patchdata.has_child("screensaver_displays")) {
+		pd.screensaver_displays.clear();
+		for (auto const node : patchdata["screensaver_displays"]) {
+			ScreensaverDisplay ss;
+			if (read(node, &ss))
+				pd.screensaver_displays.push_back(ss);
+		}
+	}
 
 	if (patchdata.has_child("module_cores") && patchdata.has_child("module_loads")) {
 		patchdata["module_cores"] >> pd.module_cores;

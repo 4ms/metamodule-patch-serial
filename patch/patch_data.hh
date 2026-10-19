@@ -649,9 +649,16 @@ struct PatchData {
 		screensaver_displays.clear();
 	}
 
+	// Identifies the display by position: see ScreensaverDisplay
+	void set_screensaver_display_at(uint16_t module_id, float x_mm, float y_mm) {
+		screensaver_displays.clear();
+		screensaver_displays.push_back({.module_id = module_id, .position_mm = std::pair{x_mm, y_mm}});
+	}
+
+	// Only matches displays identified by light id
 	bool is_screensaver_display(uint16_t module_id, uint16_t light_id) const {
 		return std::ranges::any_of(screensaver_displays, [=](ScreensaverDisplay const &ss) {
-			return ss.module_id == module_id && ss.light_id == light_id;
+			return ss.module_id == module_id && !ss.position_mm && ss.light_id == light_id;
 		});
 	}
 

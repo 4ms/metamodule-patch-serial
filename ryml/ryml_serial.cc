@@ -354,16 +354,32 @@ bool read(ryml::ConstNodeRef const &n, ModulePosition *pos) {
 void write(ryml::NodeRef *n, ScreensaverDisplay const &ss) {
 	*n |= ryml::MAP;
 	n->append_child() << ryml::key("module_id") << ss.module_id;
-	n->append_child() << ryml::key("light_id") << ss.light_id;
+	if (ss.position_mm) {
+		n->append_child() << ryml::key("x_mm") << ss.position_mm->first;
+		n->append_child() << ryml::key("y_mm") << ss.position_mm->second;
+	} else {
+		n->append_child() << ryml::key("light_id") << ss.light_id;
+	}
 }
 
 bool read(ryml::ConstNodeRef const &n, ScreensaverDisplay *ss) {
 	if (!n.is_map())
 		return false;
-	if (!n.has_child("module_id") || !n.has_child("light_id"))
+	if (!n.has_child("module_id"))
 		return false;
+
+	if (n.has_child("x_mm") && n.has_child("y_mm")) {
+		float x, y;
+		n["x_mm"] >> x;
+		n["y_mm"] >> y;
+		ss->position_mm = std::pair{x, y};
+	} else if (n.has_child("light_id")) {
+		n["light_id"] >> ss->light_id;
+		ss->position_mm.reset();
+	} else
+		return false;
+
 	n["module_id"] >> ss->module_id;
-	n["light_id"] >> ss->light_id;
 	return true;
 }
 
