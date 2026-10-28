@@ -26,7 +26,7 @@ struct PatchData {
 	std::vector<ModuleAlias> module_aliases;
 	std::vector<ExpanderConnection> expanders;
 	std::vector<ModulePosition> module_positions;
-	std::vector<ScreensaverDisplay> screensaver_displays;
+	std::vector<SelectedDisplay> selected_displays;
 
 	std::vector<uint16_t> module_cores;
 	std::vector<uint32_t> module_loads; //units in ppm of one core
@@ -588,7 +588,7 @@ struct PatchData {
 				pos.module_id--;
 		}
 
-		for (auto &ss : screensaver_displays) {
+		for (auto &ss : selected_displays) {
 			if (ss.module_id > module_id)
 				ss.module_id--;
 		}
@@ -629,47 +629,47 @@ struct PatchData {
 
 		remove_expanders(module_id);
 
-		remove_screensaver_displays(module_id);
+		remove_selected_displays(module_id);
 
 		// The module's measured load no longer applies
 		clear_load_balance();
 	}
 
 	//
-	// Screensaver display
+	// Selected display
 	//
 
-	// Only one screensaver display is supported for now: setting one replaces any other
-	void set_screensaver_display(uint16_t module_id, uint16_t light_id) {
-		screensaver_displays.clear();
-		screensaver_displays.push_back({.module_id = module_id, .light_id = light_id});
+	// Only one selected display is supported for now: setting one replaces any other
+	void set_selected_display(uint16_t module_id, uint16_t light_id) {
+		selected_displays.clear();
+		selected_displays.push_back({.module_id = module_id, .light_id = light_id});
 	}
 
-	void clear_screensaver_display() {
-		screensaver_displays.clear();
+	void clear_selected_display() {
+		selected_displays.clear();
 	}
 
-	// Identifies the display by position: see ScreensaverDisplay
-	void set_screensaver_display_at(uint16_t module_id, float x_mm, float y_mm) {
-		screensaver_displays.clear();
-		screensaver_displays.push_back({.module_id = module_id, .position_mm = std::pair{x_mm, y_mm}});
+	// Identifies the display by position: see SelectedDisplay
+	void set_selected_display_at(uint16_t module_id, float x_mm, float y_mm) {
+		selected_displays.clear();
+		selected_displays.push_back({.module_id = module_id, .position_mm = std::pair{x_mm, y_mm}});
 	}
 
 	// Only matches displays identified by light id
-	bool is_screensaver_display(uint16_t module_id, uint16_t light_id) const {
-		return std::ranges::any_of(screensaver_displays, [=](ScreensaverDisplay const &ss) {
+	bool is_selected_display(uint16_t module_id, uint16_t light_id) const {
+		return std::ranges::any_of(selected_displays, [=](SelectedDisplay const &ss) {
 			return ss.module_id == module_id && !ss.position_mm && ss.light_id == light_id;
 		});
 	}
 
-	std::optional<ScreensaverDisplay> find_screensaver_display() const {
-		if (screensaver_displays.empty())
+	std::optional<SelectedDisplay> find_selected_display() const {
+		if (selected_displays.empty())
 			return std::nullopt;
-		return screensaver_displays.front();
+		return selected_displays.front();
 	}
 
-	void remove_screensaver_displays(uint16_t module_id) {
-		std::erase_if(screensaver_displays, [=](ScreensaverDisplay const &ss) { return ss.module_id == module_id; });
+	void remove_selected_displays(uint16_t module_id) {
+		std::erase_if(selected_displays, [=](SelectedDisplay const &ss) { return ss.module_id == module_id; });
 	}
 
 	//

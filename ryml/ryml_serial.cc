@@ -351,7 +351,7 @@ bool read(ryml::ConstNodeRef const &n, ModulePosition *pos) {
 	return true;
 }
 
-void write(ryml::NodeRef *n, ScreensaverDisplay const &ss) {
+void write(ryml::NodeRef *n, SelectedDisplay const &ss) {
 	*n |= ryml::MAP;
 	n->append_child() << ryml::key("module_id") << ss.module_id;
 	if (ss.position_mm) {
@@ -362,7 +362,7 @@ void write(ryml::NodeRef *n, ScreensaverDisplay const &ss) {
 	}
 }
 
-bool read(ryml::ConstNodeRef const &n, ScreensaverDisplay *ss) {
+bool read(ryml::ConstNodeRef const &n, SelectedDisplay *ss) {
 	if (!n.is_map())
 		return false;
 	if (!n.has_child("module_id"))
