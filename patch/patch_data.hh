@@ -26,6 +26,7 @@ struct PatchData {
 	std::vector<ModuleAlias> module_aliases;
 	std::vector<ExpanderConnection> expanders;
 	std::vector<ModulePosition> module_positions;
+	std::vector<SelectedDisplay> selected_displays;
 
 	std::vector<uint16_t> module_cores;
 	std::vector<uint32_t> module_loads; //units in ppm of one core
@@ -200,7 +201,7 @@ struct PatchData {
 		MappedKnobSet &set = (set_id == MIDIKnobSet) ? midi_maps : knob_sets[set_id];
 
 		auto num_erased = std::erase_if(
-			set.set, [&map](auto m) { return (m.module_id == map.module_id && m.param_id == map.param_id); });
+			set.set, [&map](auto const &m) { return (m.module_id == map.module_id && m.param_id == map.param_id); });
 
 		return num_erased > 0;
 	}
@@ -247,14 +248,14 @@ struct PatchData {
 			std::erase(cable.ins, jack);
 		}
 		// Remove any cables that now have no inputs
-		std::erase_if(int_cables, [](auto cable) { return (cable.ins.size() == 0); });
+		std::erase_if(int_cables, [](auto const &cable) { return (cable.ins.size() == 0); });
 
 		remove_injack_mappings(jack);
 	}
 
 	void disconnect_outjack(Jack jack) {
 		// Remove any cables with this output
-		std::erase_if(int_cables, [jack](auto cable) { return (cable.out == jack); });
+		std::erase_if(int_cables, [jack](auto const &cable) { return (cable.out == jack); });
 
 		remove_outjack_mappings(jack);
 	}
@@ -265,14 +266,50 @@ struct PatchData {
 			std::erase(map.ins, jack);
 		}
 		// Remove any panel mappings that now have no inputs
-		std::erase_if(mapped_ins, [](auto map) { return (map.ins.size() == 0); });
+		std::erase_if(mapped_ins, [](auto const &map) { return (map.ins.size() == 0); });
 
 		update_midi_poly_num();
 	}
 
 	void remove_outjack_mappings(Jack jack) {
 		// Remove any panel mappings with this output
-		std::erase_if(mapped_outs, [jack](auto map) { return (map.out == jack); });
+		std::erase_if(mapped_outs, [jack](auto const &map) { return (map.out == jack); });
+	}
+
+	// Removes one input from the internal cable driven by `out`, leaving the cable's other inputs connected
+	bool remove_internal_cable(Jack out, Jack in) {
+		auto *cable = _find_internal_cable_with_outjack(out);
+		if (!cable)
+			return false;
+
+		auto num_erased = std::erase(cable->ins, in);
+
+		// Remove any cables that now have no inputs
+		std::erase_if(int_cables, [](auto const &cable) { return (cable.ins.size() == 0); });
+
+		return num_erased > 0;
+	}
+
+	// Removes one panel (or MIDI) input mapping to `jack`, leaving its other mappings in place
+	bool remove_mapped_injack(uint32_t panel_jack_id, Jack jack) {
+		size_t num_erased = 0;
+		for (auto &map : mapped_ins) {
+			if (map.panel_jack_id == panel_jack_id)
+				num_erased += std::erase(map.ins, jack);
+		}
+		// Remove any panel mappings that now have no inputs
+		std::erase_if(mapped_ins, [](auto const &map) { return (map.ins.size() == 0); });
+
+		update_midi_poly_num();
+
+		return num_erased > 0;
+	}
+
+	// Removes one panel output mapping from `jack`, leaving its other mappings in place
+	bool remove_mapped_outjack(uint32_t panel_jack_id, Jack jack) {
+		auto num_erased = std::erase_if(
+			mapped_outs, [=](auto const &map) { return (map.panel_jack_id == panel_jack_id && map.out == jack); });
+		return num_erased > 0;
 	}
 
 	const MappedInputJack *find_mapped_midi_injack(Jack jack) const {
@@ -383,7 +420,7 @@ struct PatchData {
 			return;
 		}
 		std::erase_if(knob_sets,
-					  [this](auto &knobset) { return knobset.set.size() == 0 && &knobset != &knob_sets[0]; });
+					  [this](auto const &knobset) { return knobset.set.size() == 0 && &knobset != &knob_sets[0]; });
 	}
 
 	const char *valid_knob_set_name(unsigned set_i) const {
@@ -550,6 +587,11 @@ struct PatchData {
 			if (pos.module_id > module_id)
 				pos.module_id--;
 		}
+
+		for (auto &ss : selected_displays) {
+			if (ss.module_id > module_id)
+				ss.module_id--;
+		}
 	}
 
 	// Removes all cables, mappings, etc for a module
@@ -561,25 +603,25 @@ struct PatchData {
 			if (cable.out.module_id == module_id) {
 				return true;
 			} else {
-				std::erase_if(cable.ins, [=](Jack in) { return in.module_id == module_id; });
+				std::erase_if(cable.ins, [=](Jack const &in) { return in.module_id == module_id; });
 				return (cable.ins.size() == 0);
 			}
 		});
 
 		for (MappedInputJack &map : mapped_ins) {
-			std::erase_if(map.ins, [=](Jack in) { return in.module_id == module_id; });
+			std::erase_if(map.ins, [=](Jack const &in) { return in.module_id == module_id; });
 		}
-		std::erase_if(mapped_ins, [=](MappedInputJack map) { return map.ins.size() == 0; });
-		std::erase_if(mapped_outs, [=](MappedOutputJack map) { return map.out.module_id == module_id; });
+		std::erase_if(mapped_ins, [=](MappedInputJack const &map) { return map.ins.size() == 0; });
+		std::erase_if(mapped_outs, [=](MappedOutputJack const &map) { return map.out.module_id == module_id; });
 
-		std::erase_if(static_knobs, [=](StaticParam &knob) { return knob.module_id == module_id; });
+		std::erase_if(static_knobs, [=](StaticParam const &knob) { return knob.module_id == module_id; });
 
 		for (auto &knobset : knob_sets) {
-			std::erase_if(knobset.set, [=](MappedKnob &map) { return map.module_id == module_id; });
+			std::erase_if(knobset.set, [=](MappedKnob const &map) { return map.module_id == module_id; });
 		}
-		std::erase_if(midi_maps.set, [=](MappedKnob &map) { return map.module_id == module_id; });
+		std::erase_if(midi_maps.set, [=](MappedKnob const &map) { return map.module_id == module_id; });
 
-		std::erase_if(module_states, [=](ModuleInitState &state) { return state.module_id == module_id; });
+		std::erase_if(module_states, [=](ModuleInitState const &state) { return state.module_id == module_id; });
 
 		std::erase(bypassed_modules, static_cast<uint16_t>(module_id));
 
@@ -587,8 +629,47 @@ struct PatchData {
 
 		remove_expanders(module_id);
 
+		remove_selected_displays(module_id);
+
 		// The module's measured load no longer applies
 		clear_load_balance();
+	}
+
+	//
+	// Selected display
+	//
+
+	// Only one selected display is supported for now: setting one replaces any other
+	void set_selected_display(uint16_t module_id, uint16_t light_id) {
+		selected_displays.clear();
+		selected_displays.push_back({.module_id = module_id, .light_id = light_id});
+	}
+
+	void clear_selected_display() {
+		selected_displays.clear();
+	}
+
+	// Identifies the display by position: see SelectedDisplay
+	void set_selected_display_at(uint16_t module_id, float x_mm, float y_mm) {
+		selected_displays.clear();
+		selected_displays.push_back({.module_id = module_id, .position_mm = std::pair{x_mm, y_mm}});
+	}
+
+	// Only matches displays identified by light id
+	bool is_selected_display(uint16_t module_id, uint16_t light_id) const {
+		return std::ranges::any_of(selected_displays, [=](SelectedDisplay const &ss) {
+			return ss.module_id == module_id && !ss.position_mm && ss.light_id == light_id;
+		});
+	}
+
+	std::optional<SelectedDisplay> find_selected_display() const {
+		if (selected_displays.empty())
+			return std::nullopt;
+		return selected_displays.front();
+	}
+
+	void remove_selected_displays(uint16_t module_id) {
+		std::erase_if(selected_displays, [=](SelectedDisplay const &ss) { return ss.module_id == module_id; });
 	}
 
 	//

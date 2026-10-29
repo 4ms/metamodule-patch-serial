@@ -88,6 +88,16 @@ bool yaml_raw_to_patch(char *yaml, size_t size, PatchData &pd) {
 	if (patchdata.has_child("module_positions"))
 		patchdata["module_positions"] >> pd.module_positions;
 
+	// Skip invalid entries, rather than keeping a default one
+	if (patchdata.has_child("selected_displays")) {
+		pd.selected_displays.clear();
+		for (auto const node : patchdata["selected_displays"]) {
+			SelectedDisplay ss;
+			if (read(node, &ss))
+				pd.selected_displays.push_back(ss);
+		}
+	}
+
 	if (patchdata.has_child("module_cores") && patchdata.has_child("module_loads")) {
 		patchdata["module_cores"] >> pd.module_cores;
 		patchdata["module_loads"] >> pd.module_loads;
