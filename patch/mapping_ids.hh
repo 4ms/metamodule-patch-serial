@@ -1,19 +1,23 @@
-// TODO: move to boards/euro26hp
 #pragma once
+#include "midi_def.hh"
+#include <cstdint>
 
-static constexpr auto MaxPanelKnobs = 12;
-static constexpr auto MaxExpButtons = 32;
-static constexpr auto MaxExpPots = 32;
+// The patch format's panel mapping IDs: which IDs can be knobs, buttons, and jacks.
+// These just express maximum ranges and are agnostic to the actual panel/device the patch is written for.
+// The MIDI mapping ids are in midi_def.hh
 
-static constexpr auto ButtonsPerExpander = 8;
-static constexpr auto MaxButtonExpanders = MaxExpButtons / ButtonsPerExpander;
-
+// MappedKnob::panel_knob_id
 enum {
-	FirstExpKnob = MaxPanelKnobs,					   //12
-	LastPossibleKnob = MaxPanelKnobs + MaxExpPots - 1, //43
+	// Knobs: pots, encoders, knob expanders
+	LastPossibleKnob = 43,
 
-	FirstButton = LastPossibleKnob + 1,			  //44
-	LastButton = LastPossibleKnob + MaxExpButtons //75
+	// Buttons: built-in, or on button expanders
+	FirstButton = LastPossibleKnob + 1, //44
+	LastButton = 75,
 };
 
 static constexpr auto NumTotalParams = LastButton + 1;
+
+// MappedInputJack/MappedOutputJack::panel_jack_id: jacks, built-in or on expanders
+static constexpr uint32_t LastPossibleJack = 0xFF;
+static_assert(LastPossibleJack < MidiMonoNoteJack);
