@@ -54,11 +54,6 @@ struct MappedKnob {
 		return (mapped_val - min) / (max - min);
 	}
 
-	// TODO: move to free function in boards/euro26hp
-	bool is_panel_knob() const {
-		return panel_knob_id < MaxPanelKnobs;
-	}
-
 	bool is_midi_cc() const {
 		return (panel_knob_id >= MidiCC0 && panel_knob_id <= MidiCC127);
 	}
@@ -69,17 +64,6 @@ struct MappedKnob {
 
 	bool is_midi() const {
 		return is_midi_notegate() || is_midi_cc();
-	}
-
-	// TODO: move to free function in boards/euro26hp
-	bool is_button() const {
-		return panel_knob_id >= FirstButton && panel_knob_id <= LastButton;
-	}
-
-	// TODO: move to free function in boards/euro26hp
-	std::optional<uint32_t> ext_button() const {
-		using namespace MetaModule;
-		return MathTools::between<uint32_t>(panel_knob_id, FirstButton, LastButton);
 	}
 
 	uint16_t cc_num() const {
